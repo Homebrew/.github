@@ -1,0 +1,50 @@
+name: Sync triage configurations
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  sync-triage-config:
+    if: github.repository == 'Homebrew/.github'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        repo:
+          - Homebrew/brew
+          - Homebrew/homebrew-core
+    steps:
+      - name: Clone main repository
+        uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+
+      - name: Clone secondary repository
+        uses: actions/checkout@v2
+        with:
+          repository: ${{ matrix.repo }}
+          path: vendor/${{ matrix.repo }}
+          persist-credentials: false
+
+      - name: Configure Git user
+        uses: Homebrew/actions/git-user-config@master
+        with:
+          username: BrewTestBot
+
+      - name: Detect changes
+        id: detect_changes
+        run: ./.github/actions/sync/triage-config.rb 'vendor/${{ matrix.repo }}' '${{ matrix.repo }}' 'sync-triage-config'
+
+      - name: Create pull request
+        if: ${{ steps.detect_changes.outputs.pull_request == 'true' }}
+        uses: peter-evans/create-pull-request@8c603dbb04b917a9fc2dd991dc54fef54b640b43
+        with:
+          path: vendor/${{ matrix.repo }}
+          token: ${{ secrets.HOMEBREW_GITHUB_API_TOKEN }}
+          branch: sync-triage-config
+          title: Synchronize triage configuration.
+          body: >
+            This pull request was created automatically by the
+            [`sync-triage-config`](https://github.com/Homebrew/.github/blob/HEAD/.github/workflows/sync-triage-config.yml)
+            workflow.
