@@ -13,7 +13,20 @@ jobs:
       matrix:
         repo:
           - Homebrew/brew
+          - Homebrew/brew.sh
+          - Homebrew/formula-patches
+          - Homebrew/formulae.brew.sh
+          - Homebrew/gsoc
+          - Homebrew/homebrew-aliases
+          - Homebrew/homebrew-cask
+          - Homebrew/homebrew-cask-drivers
+          - Homebrew/homebrew-cask-fonts
+          - Homebrew/homebrew-cask-versions
+          - Homebrew/homebrew-command-not-found
           - Homebrew/homebrew-core
+          - Homebrew/homebrew-portable-ruby
+          - Homebrew/homebrew-test-bot
+          - Homebrew/install
     steps:
       - name: Clone main repository
         uses: actions/checkout@v2
@@ -43,7 +56,7 @@ jobs:
           path: vendor/${{ matrix.repo }}
           token: ${{ secrets.HOMEBREW_GITHUB_API_TOKEN }}
           branch: sync-triage-config
-          title: Synchronize triage configuration.
+          title: Synchronize triage configuration
           body: >
             This pull request was created automatically by the
             [`sync-triage-config`](https://github.com/Homebrew/.github/blob/HEAD/.github/workflows/sync-triage-config.yml)
