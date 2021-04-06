@@ -50,8 +50,15 @@ jobs:
         with:
           username: BrewTestBot
 
+      - name: Set up GPG commit signing
+        uses: Homebrew/actions/setup-commit-signing@master
+        with:
+          signing_key: ${{ secrets.BREWTESTBOT_GPG_SIGNING_SUBKEY }}
+
       - name: Detect changes
         id: detect_changes
+        env:
+          HOMEBREW_GPG_PASSPHRASE: ${{ secrets.BREWTESTBOT_GPG_SIGNING_SUBKEY_PASSPHRASE }}
         run: ./.github/actions/sync/triage-config.rb 'vendor/${{ matrix.repo }}' '${{ matrix.repo }}' 'sync-triage-config'
 
       - name: Create pull request
