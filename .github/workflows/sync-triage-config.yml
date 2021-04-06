@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - master
-
 jobs:
   sync-triage-config:
     if: github.repository == 'Homebrew/.github'
@@ -60,7 +59,7 @@ jobs:
         uses: peter-evans/create-pull-request@052fc72b4198ba9fbc81b818c6e1859f747d49a8
         with:
           path: vendor/${{ matrix.repo }}
-          token: ${{ secrets.HOMEBREW_GITHUB_PUBLIC_REPO_TOKEN }}
+          token: ${{ secrets.HOMEBREW_DOTGITHUB_WORKFLOW_TOKEN }}
           branch: sync-triage-config
           title: Synchronize triage configuration
           body: >
