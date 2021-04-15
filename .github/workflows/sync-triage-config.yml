@@ -18,6 +18,7 @@ jobs:
           - Homebrew/formulae.brew.sh
           - Homebrew/gsoc
           - Homebrew/homebrew-aliases
+          - Homebrew/homebrew-autoupdate
           - Homebrew/homebrew-bundle
           - Homebrew/homebrew-cask
           - Homebrew/homebrew-cask-drivers
