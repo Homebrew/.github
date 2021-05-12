@@ -5,6 +5,8 @@ on:
   push:
     paths:
       - .github/workflows/triage-issues.yml
+    branches-ignore:
+      - dependabot/**
   schedule:
     # Once every day at midnight UTC
     - cron: "0 0 * * *"
