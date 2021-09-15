@@ -5,6 +5,9 @@ on:
     branches:
       - master
 
+permissions:
+  contents: read
+
 concurrency:
   group: sync-triage-config
   cancel-in-progress: true
