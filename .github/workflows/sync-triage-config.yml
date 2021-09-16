@@ -35,7 +35,6 @@ jobs:
           - Homebrew/homebrew-command-not-found
           - Homebrew/homebrew-core
           - Homebrew/homebrew-formula-analytics
-          - Homebrew/homebrew-json
           - Homebrew/homebrew-portable-ruby
           - Homebrew/homebrew-services
           - Homebrew/homebrew-test-bot
