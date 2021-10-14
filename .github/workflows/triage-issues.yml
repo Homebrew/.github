@@ -4,7 +4,7 @@ name: Triage issues
 on:
   push:
     paths:
-      - .github/workflows/triage-issues.yml
+      - .github/workflows/triage-issues.yml 
     branches-ignore:
       - dependabot/**
   schedule:
@@ -14,7 +14,7 @@ on:
 
 permissions:
   issues: write
-  pull-requests: write
+  pull-requests: write 
 
 concurrency:
   group: triage-issues
