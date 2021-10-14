@@ -1,4 +1,4 @@
-name: Sync triage configurations
+name: Sync triage configurations 
 
 on:
   push:
