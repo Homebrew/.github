@@ -35,7 +35,7 @@ raise err unless status.success?
 target_dir_changed = !out.chomp.empty?
 
 unless target_dir_changed
-  puts 'No changed detected.'
+  puts 'No changes detected.'
   exit
 end
 
@@ -52,4 +52,6 @@ modified_paths.each do |modified_path|
 end
 puts
 
-puts '::set-output name=pull_request::true'
+File.open(ENV.fetch('GITHUB_OUTPUT', 'a')) do |f|
+  f.puts 'pull_request=true'
+end
