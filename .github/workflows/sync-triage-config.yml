@@ -29,7 +29,6 @@ jobs:
           - Homebrew/homebrew-autoupdate
           - Homebrew/homebrew-bundle
           - Homebrew/homebrew-cask
-          - Homebrew/homebrew-cask-drivers
           - Homebrew/homebrew-cask-fonts
           - Homebrew/homebrew-cask-versions
           - Homebrew/homebrew-command-not-found
