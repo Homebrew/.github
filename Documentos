@@ -1,0 +1,54 @@
+ Documentos de GitHub
+Construyendo comunidades /Aportes saludables /expediente de salud de la comunidad
+Creación de un archivo de salud comunitario predeterminado
+En este articulo
+Acerca de los archivos de salud de la comunidad predeterminados
+Tipos de archivos compatibles
+Creación de un repositorio para archivos predeterminados
+Puede crear archivos de salud comunitarios predeterminados, como CONTRIBUTING y CODE_OF_CONDUCT. Los archivos predeterminados se utilizarán para cualquier repositorio propiedad de la cuenta que no contenga su propio archivo de ese tipo.
+
+Acerca de los archivos de salud de la comunidad predeterminados
+Puede agregar archivos de salud comunitarios predeterminados a un repositorio público llamado .github, en la raíz del repositorio o en las carpetas docso ..github
+
+GitHub usará y mostrará archivos predeterminados para cualquier repositorio propiedad de la cuenta que no tenga su propio archivo de ese tipo en cualquiera de los siguientes lugares:
+
+la raiz del repositorio
+la .githubcarpeta
+la docscarpeta
+Por ejemplo, cualquier persona que cree una propuesta o una solicitud de extracción en un repositorio que no tenga su propio archivo CONTRIBUCIÓN verá un enlace al archivo CONTRIBUCIÓN predeterminado. Si un repositorio tiene archivos en su propia .github/ISSUE_TEMPLATEcarpeta, incluidas plantillas de problemas o un archivo config.yml.github/ISSUE_TEMPLATE , no se usará ninguno de los contenidos de la carpeta predeterminada .
+
+Los archivos predeterminados no aparecerán en el explorador de archivos ni en el historial de Git y no se incluyen en clones, paquetes o descargas de repositorios individuales porque solo se almacenan en el repositorio .github.
+
+Tipos de archivos compatibles
+Puede crear valores predeterminados en su organización o cuenta personal para los siguientes archivos de salud de la comunidad:
+
+expediente de salud de la comunidad	Descripción
+CÓDIGO_DE_CONDUCTA.md	Un archivo CODE_OF_CONDUCT define los estándares sobre cómo participar en una comunidad. Para obtener más información, consulte " Agregar un código de conducta a su proyecto ".
+CONTRIBUYENDO.md	Un archivo CONTRIBUCIÓN comunica cómo las personas deben contribuir a su proyecto. Para obtener más información, consulte " Establecimiento de pautas para los contribuyentes del repositorio ".
+Formularios de categoría de discusión	Los formularios de categoría de discusión personalizan las plantillas que están disponibles para que las usen los miembros de la comunidad cuando abren nuevas discusiones en su repositorio. Para obtener más información, consulte " Creación de formularios de categoría de discusión ".
+FINANCIACIÓN.yml	Un archivo de FINANCIACIÓN muestra un botón de patrocinador en su repositorio para aumentar la visibilidad de las opciones de financiación para su proyecto de código abierto. Para obtener más información, consulte " Mostrar un botón de patrocinador en su repositorio ".
+GOBERNANZA.md	Un archivo de GOBERNANZA le permite a la gente saber cómo se gobierna su proyecto. Por ejemplo, podría discutir los roles del proyecto y cómo se toman las decisiones.
+Plantillas de emisión y solicitud de extracción y config.yml	Las plantillas de problemas y solicitudes de extracción personalizan y estandarizan la información que desea que los colaboradores incluyan cuando abren problemas y solicitudes de extracción en su repositorio. Para obtener más información, consulta " Acerca de las plantillas de propuestas y solicitudes de extracción ".
+SECURITY.md	Un archivo de SEGURIDAD brinda instrucciones sobre cómo informar una vulnerabilidad de seguridad en su proyecto. Para obtener más información, consulte " Agregar una política de seguridad a su repositorio ".
+SOPORTE.md	Un archivo de SOPORTE permite que las personas conozcan formas de obtener ayuda con su proyecto. Para obtener más información, consulte " Agregar recursos de soporte a su proyecto ".
+No puede crear un archivo de licencia predeterminado. Los archivos de licencia deben agregarse a repositorios individuales para que el archivo se incluya cuando se clone, empaquete o descargue un proyecto.
+
+Creación de un repositorio para archivos predeterminados
+En la esquina superior derecha de cualquier página, use el menú desplegable y seleccione Nuevo repositorio .
+
+Captura de pantalla de un menú desplegable de GitHub que muestra opciones para crear nuevos elementos.  El elemento de menú "Nuevo repositorio" está resaltado en naranja oscuro.
+
+Use el menú desplegable Propietario y seleccione la organización o la cuenta personal para la que desea crear archivos predeterminados.
+Captura de pantalla del menú de propietario para un nuevo repositorio de GitHub.  El menú muestra dos opciones, octocat y github.
+
+En el campo "Nombre del repositorio", escribe .github .
+
+Opcionalmente, en el campo "Descripción", escriba una descripción.
+
+Asegúrese de que el estado del repositorio sea Público . Un repositorio de archivos predeterminados no puede ser privado.
+
+Seleccione Inicializar este repositorio con un LÉAME .
+
+Haz clic en Crear repositorio .
+
+En el repositorio, cree uno de los archivos de salud comunitarios admitidos. Las plantillas de problemas y su archivo de configuración deben estar en una carpeta llamada .github/ISSUE_TEMPLATE. Todos los demás archivos admitidos pueden estar en la raíz del repositorio, la .githubcarpeta o la docscarpeta. Para obtener más información, consulte " Creación de nuevos archivos ".
