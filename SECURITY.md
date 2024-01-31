@@ -39,10 +39,12 @@ The following do not constitute security vulnerabilities in Homebrew:
 - security vulnerabilities in software used by but not written by Homebrew
 - nominal clickjacking and similar attacks against our static, GitHub Pages websites
 
-While researching, we'd like to ask you to refrain from:
+## Conduct
+
+While researching, we ask you to refrain from:
 
 - Denial of service
 - Spamming
 - Social engineering (including phishing) of Homebrew maintainers or contributors
 - Any physical attempts against Homebrew's machines
-
+- Testing discoveries on Homebrew's CI/CD or other services by filing public PRs containing weaknesses
