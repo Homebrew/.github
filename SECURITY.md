@@ -47,4 +47,4 @@ While researching, we ask you to refrain from:
 - Spamming
 - Social engineering (including phishing) of Homebrew maintainers or contributors
 - Any physical attempts against Homebrew's machines
-- Testing discoveries on Homebrew's CI/CD or other services by filing public PRs containing weaknesses
+- Performing vulnerability research in public, such as testing discoveries by opening pull requests to Homebrew's public repositories without prior written approval
