@@ -14,6 +14,8 @@ source_dir = ARGV[1]
 
 puts 'Detecting changes…'
 [
+  '.github/workflows/lock-threads.yml',
+  '.github/workflows/stale-issues.yml',
   '.github/workflows/triage-issues.yml',
 ].each do |glob|
   src_paths = Pathname.glob(glob)
