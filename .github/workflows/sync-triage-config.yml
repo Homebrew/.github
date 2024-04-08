@@ -25,7 +25,6 @@ jobs:
           - Homebrew/formula-patches
           - Homebrew/formulae.brew.sh
           - Homebrew/homebrew-aliases
-          - Homebrew/homebrew-autoupdate
           - Homebrew/homebrew-bundle
           - Homebrew/homebrew-cask
           - Homebrew/homebrew-cask-fonts
