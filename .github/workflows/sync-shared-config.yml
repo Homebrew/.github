@@ -40,7 +40,6 @@ jobs:
           - Homebrew/homebrew-services
           - Homebrew/homebrew-test-bot
           - Homebrew/install
-          - Homebrew/mass-bottling-tracker
           - Homebrew/orka_api_client
           - Homebrew/ruby-macho
           - Homebrew/rubydoc.brew.sh
