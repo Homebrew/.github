@@ -1,4 +1,4 @@
-name: Sync triage configurations
+name: Sync shared configurations
 
 on:
   push:
@@ -9,11 +9,11 @@ permissions:
   contents: read
 
 concurrency:
-  group: sync-triage-config
+  group: sync-shared-config
   cancel-in-progress: true
 
 jobs:
-  sync-triage-config:
+  sync-shared-config:
     if: github.repository == 'Homebrew/.github'
     runs-on: ubuntu-latest
     strategy:
@@ -64,7 +64,7 @@ jobs:
         id: detect_changes
         env:
           HOMEBREW_GPG_PASSPHRASE: ${{ secrets.BREWTESTBOT_GPG_SIGNING_SUBKEY_PASSPHRASE }}
-        run: ./.github/actions/sync/triage-config.rb 'vendor/${{ matrix.repo }}' '${{ matrix.repo }}' 'sync-triage-config'
+        run: ./.github/actions/sync/shared-config.rb 'vendor/${{ matrix.repo }}' '${{ matrix.repo }}' 'sync-shared-config'
 
       - name: Create pull request
         if: ${{ steps.detect_changes.outputs.pull_request == 'true' }}
@@ -72,9 +72,9 @@ jobs:
         with:
           path: vendor/${{ matrix.repo }}
           token: ${{ secrets.HOMEBREW_DOTGITHUB_WORKFLOW_TOKEN }}
-          branch: sync-triage-config
-          title: Synchronize triage configuration
+          branch: sync-shared-config
+          title: Synchronize shared configuration
           body: >
             This pull request was created automatically by the
-            [`sync-triage-config`](https://github.com/Homebrew/.github/blob/HEAD/.github/workflows/sync-triage-config.yml)
+            [`sync-shared-config`](https://github.com/Homebrew/.github/blob/HEAD/.github/workflows/sync-shared-config.yml)
             workflow.
