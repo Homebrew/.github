@@ -16,6 +16,7 @@ puts 'Detecting changes…'
 [
   '.github/workflows/lock-threads.yml',
   '.github/workflows/stale-issues.yml',
+  '.ruby-version',
 ].each do |glob|
   src_paths = Pathname.glob(glob)
   dst_paths = Pathname.glob(target_dir.join(glob))
