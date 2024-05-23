@@ -19,21 +19,28 @@ jobs:
     strategy:
       matrix:
         repo:
+          - Homebrew/.github
           - Homebrew/actions
           - Homebrew/brew
+          - Homebrew/brew-pip-audit
           - Homebrew/brew.sh
+          - Homebrew/ci-orchestrator
+          - Homebrew/discussions
           - Homebrew/formula-patches
           - Homebrew/formulae.brew.sh
+          - Homebrew/glibc-bootstrap
           - Homebrew/homebrew-aliases
           - Homebrew/homebrew-bundle
           - Homebrew/homebrew-cask
           - Homebrew/homebrew-command-not-found
           - Homebrew/homebrew-core
           - Homebrew/homebrew-formula-analytics
+          - Homebrew/homebrew-linux-fonts
           - Homebrew/homebrew-portable-ruby
           - Homebrew/homebrew-services
           - Homebrew/homebrew-test-bot
           - Homebrew/install
+          - Homebrew/orka_api_client
           - Homebrew/ruby-macho
           - Homebrew/rubydoc.brew.sh
       fail-fast: false
