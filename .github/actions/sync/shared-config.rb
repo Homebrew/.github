@@ -40,13 +40,18 @@ homebrew_rubocop_config = homebrew_rubocop_config_yaml.reject do |key, _|
   key.match?(%r{\Arequire|inherit_from|inherit_mode|Cask/|Formula|Homebrew|Performance/|RSpec|Sorbet/})
 end.to_yaml
 
+custom_ruby_version_repos = %w[
+  mass-bottling-tracker-private
+].freeze
 custom_rubocop_repos = %w[
   ci-orchestrator
+  mass-bottling-tracker-private
   orka_api_client
   ruby-macho
 ].freeze
 custom_dependabot_repos = %w[
   brew
+  brew-pip-audit
   ci-orchestrator
 ].freeze
 
@@ -63,6 +68,8 @@ puts "Detecting changes…"
 
   case file
   when ruby_version
+    next if custom_ruby_version_repos.include?(repository_name)
+
     target_path.write("#{homebrew_ruby_version}\n")
   when rubocop_yml
     next if custom_rubocop_repos.include?(repository_name)
