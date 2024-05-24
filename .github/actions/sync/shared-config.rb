@@ -47,6 +47,7 @@ custom_rubocop_repos = %w[
 ].freeze
 custom_dependabot_repos = %w[
   brew
+  ci-orchestrator
 ].freeze
 
 puts "Detecting changes…"
