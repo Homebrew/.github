@@ -17,6 +17,7 @@ end
 
 target_directory = ARGV[0]
 target_directory_path = Pathname(target_directory)
+repository_name = target_directory_path.basename.to_s
 homebrew_repository_path = Pathname(ARGV[1])
 
 if !target_directory_path.directory? || !homebrew_repository_path.directory? || ARGV[2]
@@ -25,6 +26,7 @@ end
 
 ruby_version = ".ruby-version"
 rubocop_yml = ".rubocop.yml"
+dependabot_yml = ".github/dependabot.yml"
 
 homebrew_ruby_version =
   (homebrew_repository_path/"Library/Homebrew/vendor/portable-ruby-version").read
@@ -35,13 +37,23 @@ homebrew_rubocop_config_yaml = YAML.load_file(
   permitted_classes: [Symbol, Regexp],
 )
 homebrew_rubocop_config = homebrew_rubocop_config_yaml.reject do |key, _|
-  key.match?(%r{\Arequire|inherit_from|inherit_mode|Cask/|Formula|Homebrew/|Performance/|RSpec|Sorbet/})
+  key.match?(%r{\Arequire|inherit_from|inherit_mode|Cask/|Formula|Homebrew|Performance/|RSpec|Sorbet/})
 end.to_yaml
+
+custom_rubocop_repos = %w[
+  ci-orchestrator
+  orka_api_client
+  ruby-macho
+].freeze
+custom_dependabot_repos = %w[
+  brew
+].freeze
 
 puts "Detecting changes…"
 [
   ruby_version,
   rubocop_yml,
+  dependabot_yml,
   ".github/workflows/lock-threads.yml",
   ".github/workflows/stale-issues.yml",
 ].each do |file|
@@ -52,7 +64,13 @@ puts "Detecting changes…"
   when ruby_version
     target_path.write("#{homebrew_ruby_version}\n")
   when rubocop_yml
+    next if custom_rubocop_repos.include?(repository_name)
+
     target_path.write("#{homebrew_rubocop_config}\n")
+  when dependabot_yml
+    next if custom_dependabot_repos.include?(repository_name)
+
+    FileUtils.cp file, target_path
   else
     FileUtils.cp file, target_path
   end
