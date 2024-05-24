@@ -44,6 +44,10 @@ jobs:
           - Homebrew/orka_api_client
           - Homebrew/ruby-macho
           - Homebrew/rubydoc.brew.sh
+          - Homebrew/mass-bottling-tracker-private
+          - Homebrew/governance-private
+          - Homebrew/security-private
+          - Homebrew/ops-private
       fail-fast: false
     steps:
       - name: Set up Homebrew
@@ -70,6 +74,7 @@ jobs:
         with:
           repository: ${{ matrix.repo }}
           path: vendor/${{ matrix.repo }}
+          token: ${{ secrets.HOMEBREW_DOTGITHUB_WORKFLOW_TOKEN }}
           persist-credentials: false
 
       - name: Configure Git user
