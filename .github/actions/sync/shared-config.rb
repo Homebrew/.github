@@ -15,10 +15,10 @@ def git(*args)
 end
 # rubocop:enable Style/TopLevelMethodDefinition
 
-target_directory = ARGV[0]
+target_directory = ARGV.fetch(0, "")
 target_directory_path = Pathname(target_directory)
 repository_name = target_directory_path.basename.to_s
-homebrew_repository_path = Pathname(ARGV[1])
+homebrew_repository_path = Pathname(ARGV.fetch(1, ""))
 
 if !target_directory_path.directory? || !homebrew_repository_path.directory? || ARGV[2]
   abort "Usage: #{$PROGRAM_NAME} <target_directory_path> <homebrew_repository_path>"
@@ -66,12 +66,19 @@ puts "Detecting changes…"
   when rubocop_yml
     next if custom_rubocop_repos.include?(repository_name)
 
-    target_path.write("#{homebrew_rubocop_config}\n")
+    FileUtils.rm_f target_path
+    target_path.write(
+      "# This file is synced from `Homebrew/brew` by the `.github` repository, do not modify it directly.\n" \
+      "#{homebrew_rubocop_config}\n",
+    )
   when dependabot_yml
     next if custom_dependabot_repos.include?(repository_name)
+    next if file == target_path.to_s
 
     FileUtils.cp file, target_path
   else
+    next if file == target_path.to_s
+
     FileUtils.cp file, target_path
   end
 end
@@ -100,6 +107,8 @@ modified_paths.each do |modified_path|
 end
 puts
 
-File.open(ENV.fetch("GITHUB_OUTPUT"), "a") do |f|
-  f.puts "pull_request=true"
+if ENV["GITHUB_ACTIONS"]
+  File.open(ENV.fetch("GITHUB_OUTPUT"), "a") do |f|
+    f.puts "pull_request=true"
+  end
 end
