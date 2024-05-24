@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+  pull_request:
 
 permissions:
   contents: read
@@ -45,10 +46,24 @@ jobs:
           - Homebrew/rubydoc.brew.sh
       fail-fast: false
     steps:
+      - name: Set up Homebrew
+        id: set-up-homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+
       - name: Clone main repository
         uses: actions/checkout@v4
         with:
           persist-credentials: false
+
+      - run: brew install-bundler-gems --groups=style
+        if: ${{ matrix.repo == 'Homebrew/.github' }}
+        env:
+          HOMEBREW_DEVELOPER: 1
+
+      - run: brew style .github/actions/sync/*.rb
+        if: ${{ matrix.repo == 'Homebrew/.github' }}
+        env:
+          HOMEBREW_DEVELOPER: 1
 
       - name: Clone secondary repository
         uses: actions/checkout@v4
@@ -71,10 +86,10 @@ jobs:
         id: detect_changes
         env:
           HOMEBREW_GPG_PASSPHRASE: ${{ secrets.BREWTESTBOT_GPG_SIGNING_SUBKEY_PASSPHRASE }}
-        run: ./.github/actions/sync/shared-config.rb 'vendor/${{ matrix.repo }}' '${{ matrix.repo }}' 'sync-shared-config'
+        run: ./.github/actions/sync/shared-config.rb 'vendor/${{ matrix.repo }}' '/home/linuxbrew/.linuxbrew/Homebrew'
 
       - name: Create pull request
-        if: ${{ steps.detect_changes.outputs.pull_request == 'true' }}
+        if: ${{ github.ref == 'refs/heads/master' && steps.detect_changes.outputs.pull_request == 'true' }}
         uses: peter-evans/create-pull-request@6d6857d36972b65feb161a90e484f2984215f83e
         with:
           path: vendor/${{ matrix.repo }}
