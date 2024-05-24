@@ -5,6 +5,7 @@ require "English"
 require "fileutils"
 require "open3"
 require "pathname"
+require "yaml"
 
 # This makes sense for a standalone script.
 # rubocop:disable Style/TopLevelMethodDefinition
@@ -26,8 +27,16 @@ ruby_version = ".ruby-version"
 rubocop_yml = ".rubocop.yml"
 
 homebrew_ruby_version =
-  (homebrew_repository_path/"Library/Homebrew/vendor/portable-ruby-version").read.chomp.sub(/_\d+$/, "")
-homebrew_rubocop_config = homebrew_repository_path/"Library/Homebrew/#{rubocop_yml}"
+  (homebrew_repository_path/"Library/Homebrew/vendor/portable-ruby-version").read
+                                                                            .chomp
+                                                                            .sub(/_\d+$/, "")
+homebrew_rubocop_config_yaml = YAML.load_file(
+  homebrew_repository_path/"Library/#{rubocop_yml}",
+  permitted_classes: [Symbol, Regexp],
+)
+homebrew_rubocop_config = homebrew_rubocop_config_yaml.reject do |key, _|
+  key.match?(%r{\Arequire|inherit_from|inherit_mode|Cask/|Formula|Homebrew/|Performance/|RSpec|Sorbet/})
+end.to_yaml
 
 puts "Detecting changes…"
 [
@@ -43,7 +52,7 @@ puts "Detecting changes…"
   when ruby_version
     target_path.write("#{homebrew_ruby_version}\n")
   when rubocop_yml
-    FileUtils.cp homebrew_rubocop_config, target_path
+    target_path.write("#{homebrew_rubocop_config}\n")
   else
     FileUtils.cp file, target_path
   end
