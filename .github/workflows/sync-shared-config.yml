@@ -5,12 +5,14 @@ on:
     branches:
       - master
   pull_request:
+  schedule:
+    - cron: "0 */3 * * *" # Every 3 hours
 
 permissions:
   contents: read
 
 concurrency:
-  group: sync-shared-config
+  group: "sync-shared-config-${{ github.ref }}"
   cancel-in-progress: true
 
 jobs:
