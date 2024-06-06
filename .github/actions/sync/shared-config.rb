@@ -70,6 +70,8 @@ puts "Detecting changes…"
   when ruby_version
     next if custom_ruby_version_repos.include?(repository_name)
 
+    target_path = target_directory_path/"Library/Homebrew/#{ruby_version}" if repository_name == "brew"
+
     target_path.write("#{homebrew_ruby_version}\n")
   when rubocop_yml
     next if custom_rubocop_repos.include?(repository_name)
