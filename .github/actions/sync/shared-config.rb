@@ -29,6 +29,7 @@ ruby_version = ".ruby-version"
 rubocop_yaml = ".rubocop.yml"
 dependabot_yaml = ".github/dependabot.yml"
 docs_workflow_yaml = ".github/workflows/docs.yml"
+vale_ini = ".vale.ini"
 
 homebrew_docs = homebrew_repository_path/docs
 homebrew_ruby_version =
@@ -80,6 +81,7 @@ custom_dependabot_repos = %w[
 custom_docs_repos = %w[
   brew
   rubydoc.brew.sh
+  ruby-macho
 ].freeze
 rejected_docs_basenames = %w[
   _config.yml
@@ -91,10 +93,11 @@ rejected_docs_basenames = %w[
 puts "Detecting changes…"
 [
   docs,
+  docs_workflow_yaml,
+  vale_ini,
   ruby_version,
   rubocop_yaml,
   dependabot_yaml,
-  docs_workflow_yaml,
   ".github/workflows/lock-threads.yml",
   ".github/workflows/stale-issues.yml",
 ].each do |path|
@@ -121,7 +124,7 @@ puts "Detecting changes…"
       target_docs_path.dirname.mkpath
       FileUtils.cp docs_path, target_docs_path
     end
-  when docs_workflow_yaml
+  when docs_workflow_yaml, vale_ini
     next if custom_docs_repos.include?(repository_name)
 
     docs_path = target_directory_path/docs
