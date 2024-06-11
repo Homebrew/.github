@@ -115,6 +115,7 @@ jobs:
   conclusion:
     needs: sync
     runs-on: ubuntu-latest
+    if: always()
     steps:
-      - name: Conclusion
-        run: echo "Sync shared configurations completed"
+      - name: Result
+        run: ${{ needs.sync.result == 'success' }}
