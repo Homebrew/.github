@@ -67,6 +67,7 @@ dependabot_config = dependabot_config_yaml.to_yaml
 
 custom_ruby_version_repos = %w[
   mass-bottling-tracker-private
+  ruby-macho
 ].freeze
 custom_rubocop_repos = %w[
   ci-orchestrator
@@ -174,7 +175,7 @@ puts "Detecting changes…"
 end
 
 # Update Gemfile.lock if it exists, based on the Ruby version.
-if (target_directory_path/"Gemfile.lock").exist?
+if !custom_ruby_version_repos.include?(repository_name) && (target_directory_path/"Gemfile.lock").exist?
   Dir.chdir target_directory_path do
     puts "Running bundle install..."
     system "bundle update --ruby --bundler --quiet >/dev/null"
