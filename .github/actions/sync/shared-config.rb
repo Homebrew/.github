@@ -73,6 +73,7 @@ custom_rubocop_repos = %w[
   ruby-macho
 ].freeze
 custom_dependabot_repos = %w[
+  .github
   brew
   ci-orchestrator
 ].freeze
