@@ -44,6 +44,7 @@ homebrew_rubocop_config = homebrew_rubocop_config_yaml.reject do |key, _|
   key.match?(%r{\Arequire|inherit_from|inherit_mode|Cask/|Formula|Homebrew|Performance/|RSpec|Sorbet/})
 end.to_yaml
 homebrew_docs_workflow_yaml = homebrew_repository_path/docs_workflow_yaml
+homebrew_vale_ini = homebrew_repository_path/vale_ini
 
 dependabot_config_yaml = YAML.load_file(dependabot_yaml)
 dependabot_config_yaml["updates"].select! do |update|
@@ -124,7 +125,7 @@ puts "Detecting changes…"
       target_docs_path.dirname.mkpath
       FileUtils.cp docs_path, target_docs_path
     end
-  when docs_workflow_yaml, vale_ini
+  when docs_workflow_yaml
     next if custom_docs_repos.include?(repository_name)
 
     docs_path = target_directory_path/docs
@@ -132,6 +133,14 @@ puts "Detecting changes…"
     next unless docs_path.directory?
 
     FileUtils.cp homebrew_docs_workflow_yaml, target_path
+  when vale_ini
+    next if custom_docs_repos.include?(repository_name)
+
+    docs_path = target_directory_path/docs
+    next unless docs_path.exist?
+    next unless docs_path.directory?
+
+    FileUtils.cp homebrew_vale_ini, target_path
   when ruby_version
     next if custom_ruby_version_repos.include?(repository_name)
 
