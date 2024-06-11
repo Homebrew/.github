@@ -173,6 +173,14 @@ puts "Detecting changes…"
   end
 end
 
+# Update Gemfile.lock if it exists, based on the Ruby version.
+if (target_directory_path/"Gemfile.lock").exist?
+  Dir.chdir target_directory_path do
+    puts "Running bundle install..."
+    system "bundle install --quiet >/dev/null"
+  end
+end
+
 out, err, status = Open3.capture3("git", "-C", target_directory, "status", "--porcelain", "--ignore-submodules=dirty")
 raise err unless status.success?
 
