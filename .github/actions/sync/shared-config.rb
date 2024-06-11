@@ -175,12 +175,16 @@ puts "Detecting changes…"
 end
 
 # Update Gemfile.lock if it exists, based on the Ruby version.
+#
+# rubocop:disable Homebrew/NegateInclude
+# We don't have Homebrew exclude? method here.
 if !custom_ruby_version_repos.include?(repository_name) && (target_directory_path/"Gemfile.lock").exist?
   Dir.chdir target_directory_path do
     puts "Running bundle install..."
     system "bundle update --ruby --bundler --quiet >/dev/null"
   end
 end
+# rubocop:enable Homebrew/NegateInclude
 
 out, err, status = Open3.capture3("git", "-C", target_directory, "status", "--porcelain", "--ignore-submodules=dirty")
 raise err unless status.success?
