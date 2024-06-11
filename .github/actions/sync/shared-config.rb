@@ -177,7 +177,7 @@ end
 if (target_directory_path/"Gemfile.lock").exist?
   Dir.chdir target_directory_path do
     puts "Running bundle install..."
-    system "bundle install --quiet >/dev/null"
+    system "bundle update --ruby --bundler --quiet >/dev/null"
   end
 end
 
