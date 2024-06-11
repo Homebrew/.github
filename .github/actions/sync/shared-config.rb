@@ -24,21 +24,44 @@ if !target_directory_path.directory? || !homebrew_repository_path.directory? || 
   abort "Usage: #{$PROGRAM_NAME} <target_directory_path> <homebrew_repository_path>"
 end
 
+docs = "docs"
 ruby_version = ".ruby-version"
-rubocop_yml = ".rubocop.yml"
-dependabot_yml = ".github/dependabot.yml"
+rubocop_yaml = ".rubocop.yml"
+dependabot_yaml = ".github/dependabot.yml"
+docs_workflow_yaml = ".github/workflows/docs.yml"
 
+homebrew_docs = homebrew_repository_path/docs
 homebrew_ruby_version =
   (homebrew_repository_path/"Library/Homebrew/vendor/portable-ruby-version").read
                                                                             .chomp
                                                                             .sub(/_\d+$/, "")
 homebrew_rubocop_config_yaml = YAML.load_file(
-  homebrew_repository_path/"Library/#{rubocop_yml}",
+  homebrew_repository_path/"Library/#{rubocop_yaml}",
   permitted_classes: [Symbol, Regexp],
 )
 homebrew_rubocop_config = homebrew_rubocop_config_yaml.reject do |key, _|
   key.match?(%r{\Arequire|inherit_from|inherit_mode|Cask/|Formula|Homebrew|Performance/|RSpec|Sorbet/})
 end.to_yaml
+homebrew_docs_workflow_yaml = homebrew_repository_path/docs_workflow_yaml
+
+dependabot_config_yaml = YAML.load_file(dependabot_yaml)
+dependabot_config_yaml["updates"].select! do |update|
+  case update["package-ecosystem"]
+  when "bundler"
+    (target_directory_path/"Gemfile.lock").exist?
+  when "npm"
+    (target_directory_path/"package.json").exist?
+  when "docker"
+    (target_directory_path/"Dockerfile").exist?
+  when "devcontainers"
+    (target_directory_path/".devcontainer/devcontainer.json").exist?
+  when "pip"
+    (target_directory_path/"requirements.txt").exist?
+  else
+    true
+  end
+end
+dependabot_config = dependabot_config_yaml.to_yaml
 
 custom_ruby_version_repos = %w[
   mass-bottling-tracker-private
@@ -51,29 +74,67 @@ custom_rubocop_repos = %w[
 ].freeze
 custom_dependabot_repos = %w[
   brew
-  brew-pip-audit
   ci-orchestrator
+].freeze
+custom_docs_repos = %w[
+  brew
+  rubydoc.brew.sh
+].freeze
+rejected_docs_basenames = %w[
+  _config.yml
+  CNAME
+  index.md
+  README.md
 ].freeze
 
 puts "Detecting changes…"
 [
+  docs,
   ruby_version,
-  rubocop_yml,
-  dependabot_yml,
+  rubocop_yaml,
+  dependabot_yaml,
+  docs_workflow_yaml,
   ".github/workflows/lock-threads.yml",
   ".github/workflows/stale-issues.yml",
-].each do |file|
-  target_path = target_directory_path/file
+].each do |path|
+  target_path = target_directory_path/path
   target_path.dirname.mkpath
 
-  case file
+  case path
+  when docs
+    next if custom_docs_repos.include?(repository_name)
+    next if path == target_path.to_s
+    next unless target_path.exist?
+    next unless target_path.directory?
+
+    homebrew_docs.find do |docs_path|
+      docs_path_basename = docs_path.basename.to_s
+      next Find.prune if docs_path_basename == "vendor"
+      next if docs_path.directory?
+      next if rejected_docs_basenames.include?(docs_path_basename)
+
+      target_docs_path = target_path/docs_path_basename
+      next if docs_path.extname == ".png"
+      next if docs_path.extname == ".md" && !target_docs_path.exist?
+
+      target_docs_path.dirname.mkpath
+      FileUtils.cp docs_path, target_docs_path
+    end
+  when docs_workflow_yaml
+    next if custom_docs_repos.include?(repository_name)
+
+    docs_path = target_directory_path/docs
+    next unless docs_path.exist?
+    next unless docs_path.directory?
+
+    FileUtils.cp homebrew_docs_workflow_yaml, target_path
   when ruby_version
     next if custom_ruby_version_repos.include?(repository_name)
 
     target_path = target_directory_path/"Library/Homebrew/#{ruby_version}" if repository_name == "brew"
 
     target_path.write("#{homebrew_ruby_version}\n")
-  when rubocop_yml
+  when rubocop_yaml
     next if custom_rubocop_repos.include?(repository_name)
 
     FileUtils.rm_f target_path
@@ -81,15 +142,19 @@ puts "Detecting changes…"
       "# This file is synced from `Homebrew/brew` by the `.github` repository, do not modify it directly.\n" \
       "#{homebrew_rubocop_config}\n",
     )
-  when dependabot_yml
+  when dependabot_yaml
     next if custom_dependabot_repos.include?(repository_name)
-    next if file == target_path.to_s
+    next if path == target_path.to_s
 
-    FileUtils.cp file, target_path
+    FileUtils.rm_f target_path
+    target_path.write(
+      "# This file is synced from the `.github` repository, do not modify it directly.\n" \
+      "#{dependabot_config}\n",
+    )
   else
-    next if file == target_path.to_s
+    next if path == target_path.to_s
 
-    FileUtils.cp file, target_path
+    FileUtils.cp path, target_path
   end
 end
 

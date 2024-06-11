@@ -16,7 +16,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  sync-shared-config:
+  sync:
     if: github.repository == 'Homebrew/.github'
     runs-on: ubuntu-latest
     strategy:
@@ -112,3 +112,9 @@ jobs:
             This pull request was created automatically by the
             [`sync-shared-config`](https://github.com/Homebrew/.github/blob/HEAD/.github/workflows/sync-shared-config.yml)
             workflow.
+  conclusion:
+    needs: sync
+    runs-on: ubuntu-latest
+    steps:
+      - name: Conclusion
+        run: echo "Sync shared configurations completed"
