@@ -118,9 +118,11 @@ puts "Detecting changes…"
       next if docs_path.directory?
       next if rejected_docs_basenames.include?(docs_path_basename)
 
-      target_docs_path = target_path/docs_path_basename
+      docs_path_subpath = docs_path.to_s.delete_prefix("#{homebrew_docs}/")
+      target_docs_path = target_path/docs_path_subpath
       next if docs_path.extname == ".png"
       next if docs_path.extname == ".md" && !target_docs_path.exist?
+      next if target_docs_path.to_s.include?("vendor")
 
       target_docs_path.dirname.mkpath
       FileUtils.cp docs_path, target_docs_path
