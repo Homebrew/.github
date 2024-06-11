@@ -56,7 +56,7 @@ jobs:
         id: set-up-homebrew
         uses: Homebrew/actions/setup-homebrew@master
 
-      - name: Clone main repository
+      - name: Clone source repository
         uses: actions/checkout@v4
         with:
           persist-credentials: false
@@ -71,11 +71,11 @@ jobs:
         env:
           HOMEBREW_DEVELOPER: 1
 
-      - name: Clone secondary repository
+      - name: Clone target repository
         uses: actions/checkout@v4
         with:
           repository: ${{ matrix.repo }}
-          path: vendor/${{ matrix.repo }}
+          path: target/${{ matrix.repo }}
           token: ${{ secrets.HOMEBREW_DOTGITHUB_WORKFLOW_TOKEN }}
           persist-credentials: false
 
@@ -98,13 +98,13 @@ jobs:
         id: detect_changes
         env:
           HOMEBREW_GPG_PASSPHRASE: ${{ secrets.BREWTESTBOT_GPG_SIGNING_SUBKEY_PASSPHRASE }}
-        run: ./.github/actions/sync/shared-config.rb 'vendor/${{ matrix.repo }}' '/home/linuxbrew/.linuxbrew/Homebrew'
+        run: ./.github/actions/sync/shared-config.rb 'target/${{ matrix.repo }}' '/home/linuxbrew/.linuxbrew/Homebrew'
 
       - name: Create pull request
         if: ${{ github.ref == 'refs/heads/master' && steps.detect_changes.outputs.pull_request == 'true' }}
         uses: peter-evans/create-pull-request@6d6857d36972b65feb161a90e484f2984215f83e
         with:
-          path: vendor/${{ matrix.repo }}
+          path: target/${{ matrix.repo }}
           token: ${{ secrets.HOMEBREW_DOTGITHUB_WORKFLOW_TOKEN }}
           branch: sync-shared-config
           title: Synchronize shared configuration
