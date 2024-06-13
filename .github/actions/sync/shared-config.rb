@@ -36,6 +36,8 @@ homebrew_ruby_version =
   (homebrew_repository_path/"Library/Homebrew/vendor/portable-ruby-version").read
                                                                             .chomp
                                                                             .sub(/_\d+$/, "")
+homebrew_gemfile = (homebrew_repository_path/"Library/Homebrew/Gemfile")
+homebrew_gemfile_lock = (homebrew_repository_path/"Library/Homebrew/Gemfile.lock")
 homebrew_rubocop_config_yaml = YAML.load_file(
   homebrew_repository_path/"Library/#{rubocop_yaml}",
   permitted_classes: [Symbol, Regexp],
@@ -180,8 +182,12 @@ end
 # We don't have Homebrew exclude? method here.
 if !custom_ruby_version_repos.include?(repository_name) && (target_directory_path/"Gemfile.lock").exist?
   Dir.chdir target_directory_path do
-    puts "Running bundle install..."
-    system "bundle update --ruby --bundler --quiet >/dev/null"
+    require "bundler"
+    bundler_version = Bundler::Definition.build(homebrew_gemfile, homebrew_gemfile_lock, false)
+                                         .locked_gems
+                                         .bundler_version
+    puts "Running bundle update (with Bundler #{bundler_version})..."
+    system "bundle", "update", "--ruby", "--bundler=#{bundler_version}", "--quiet", out: "/dev/null"
   end
 end
 # rubocop:enable Homebrew/NegateInclude
