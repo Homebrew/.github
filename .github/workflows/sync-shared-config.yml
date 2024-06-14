@@ -88,6 +88,9 @@ jobs:
         uses: Homebrew/actions/setup-commit-signing@master
         with:
           signing_key: ${{ secrets.BREWTESTBOT_GPG_SIGNING_SUBKEY }}
+      
+      - name: Sync initial Ruby version
+        run: cp /home/linuxbrew/.linuxbrew/Homebrew/Library/Homebrew/.ruby-version .
 
       - name: Install Ruby
         uses: ruby/setup-ruby@v1
