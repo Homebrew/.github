@@ -134,6 +134,7 @@ puts "Detecting changes…"
       if [ruby_version, "Gemfile", "Gemfile.lock"].include?(docs_path_basename) &&
          (target_path/docs_path_basename).exist?
         FileUtils.rm target_docs_path
+        File.symlink((target_path/docs_path_basename).relative_path_from(target_docs_path.dirname), target_docs_path)
       else
         FileUtils.cp docs_path, target_docs_path
       end
