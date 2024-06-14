@@ -31,6 +31,8 @@ dependabot_yaml = ".github/dependabot.yml"
 docs_workflow_yaml = ".github/workflows/docs.yml"
 vale_ini = ".vale.ini"
 
+target_gemfile_lock = target_directory_path/"Gemfile.lock"
+
 homebrew_docs = homebrew_repository_path/docs
 homebrew_ruby_version =
   (homebrew_repository_path/"Library/Homebrew/vendor/portable-ruby-version").read
@@ -52,7 +54,7 @@ dependabot_config_yaml = YAML.load_file(dependabot_yaml)
 dependabot_config_yaml["updates"].select! do |update|
   case update["package-ecosystem"]
   when "bundler"
-    (target_directory_path/"Gemfile.lock").exist?
+    target_gemfile_lock.exist?
   when "npm"
     (target_directory_path/"package.json").exist?
   when "docker"
@@ -128,7 +130,13 @@ puts "Detecting changes…"
       next if target_docs_path.to_s.include?("vendor")
 
       target_docs_path.dirname.mkpath
-      FileUtils.cp docs_path, target_docs_path
+
+      if [ruby_version, "Gemfile", "Gemfile.lock"].include?(docs_path_basename) &&
+         (target_path/docs_path_basename).exist?
+        FileUtils.rm target_docs_path
+      else
+        FileUtils.cp docs_path, target_docs_path
+      end
     end
   when docs_workflow_yaml
     next if custom_docs_repos.include?(repository_name)
@@ -180,7 +188,7 @@ end
 #
 # rubocop:disable Homebrew/NegateInclude
 # We don't have Homebrew exclude? method here.
-if !custom_ruby_version_repos.include?(repository_name) && (target_directory_path/"Gemfile.lock").exist?
+if !custom_ruby_version_repos.include?(repository_name) && target_gemfile_lock.exist?
   Dir.chdir target_directory_path do
     require "bundler"
     bundler_version = Bundler::Definition.build(homebrew_gemfile, homebrew_gemfile_lock, false)
