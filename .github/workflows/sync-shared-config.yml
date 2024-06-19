@@ -105,7 +105,7 @@ jobs:
 
       - name: Create pull request
         if: ${{ github.ref == 'refs/heads/master' && steps.detect_changes.outputs.pull_request == 'true' }}
-        uses: peter-evans/create-pull-request@6d6857d36972b65feb161a90e484f2984215f83e
+        uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c
         with:
           path: target/${{ matrix.repo }}
           token: ${{ secrets.HOMEBREW_DOTGITHUB_WORKFLOW_TOKEN }}
