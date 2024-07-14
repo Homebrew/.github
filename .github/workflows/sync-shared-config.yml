@@ -110,7 +110,7 @@ jobs:
 
           cd target/${{ matrix.repo }}
           git checkout -b sync-shared-config
-          git commit -am "Synchronize shared configuration" -m "This pull request was created automatically by the  [`sync-shared-config`](https://github.com/Homebrew/.github/blob/HEAD/.github/workflows/sync-shared-config.yml) workflow."
+          git commit -am "Synchronize shared configuration" -m 'This pull request was created automatically by the [`sync-shared-config`](https://github.com/Homebrew/.github/blob/HEAD/.github/workflows/sync-shared-config.yml) workflow.'
           gh pr create
         env:
           GITHUB_TOKEN: ${{ secrets.HOMEBREW_DOTGITHUB_WORKFLOW_TOKEN }}
