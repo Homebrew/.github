@@ -104,7 +104,6 @@ puts "Detecting changes…"
   ruby_version,
   rubocop_yaml,
   dependabot_yaml,
-  ".github/workflows/lock-threads.yml",
   ".github/workflows/stale-issues.yml",
 ].each do |path|
   target_path = target_directory_path/path
