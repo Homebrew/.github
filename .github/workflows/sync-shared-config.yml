@@ -88,7 +88,7 @@ jobs:
         uses: Homebrew/actions/setup-commit-signing@master
         with:
           signing_key: ${{ secrets.BREWTESTBOT_GPG_SIGNING_SUBKEY }}
-      
+
       - name: Sync initial Ruby version
         run: cp /home/linuxbrew/.linuxbrew/Homebrew/Library/Homebrew/.ruby-version .
 
@@ -105,16 +105,15 @@ jobs:
 
       - name: Create pull request
         if: ${{ github.ref == 'refs/heads/master' && steps.detect_changes.outputs.pull_request == 'true' }}
-        uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c
-        with:
-          path: target/${{ matrix.repo }}
-          token: ${{ secrets.HOMEBREW_DOTGITHUB_WORKFLOW_TOKEN }}
-          branch: sync-shared-config
-          title: Synchronize shared configuration
-          body: >
-            This pull request was created automatically by the
-            [`sync-shared-config`](https://github.com/Homebrew/.github/blob/HEAD/.github/workflows/sync-shared-config.yml)
-            workflow.
+        run: |
+          set -euo pipefail
+
+          cd target/${{ matrix.repo }}
+          git b sync-shared-config
+          git commit -am "Synchronize shared configuration" -m "This pull request was created automatically by the  [`sync-shared-config`](https://github.com/Homebrew/.github/blob/HEAD/.github/workflows/sync-shared-config.yml) workflow."
+          gh pr create
+        env:
+          GITHUB_TOKEN: ${{ secrets.HOMEBREW_DOTGITHUB_WORKFLOW_TOKEN }}
   conclusion:
     needs: sync
     runs-on: ubuntu-latest
