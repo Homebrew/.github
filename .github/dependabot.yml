@@ -13,7 +13,6 @@ updates:
     # The actions in triage-issues.yml are updated in the Homebrew/.github repo
     ignore:
       - dependency-name: actions/stale
-      - dependency-name: dessant/lock-threads
     groups:
       artifacts:
         patterns:
