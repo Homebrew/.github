@@ -116,7 +116,7 @@ jobs:
             gh pr create --head sync-shared-config --title "Synchronize shared configuration" --body 'This pull request was created automatically by the [`sync-shared-config`](https://github.com/Homebrew/.github/blob/HEAD/.github/actions/sync/shared-config.rb) workflow.'
           fi
         env:
-          GITHUB_TOKEN: ${{ secrets.HOMEBREW_DOTGITHUB_WORKFLOW_TOKEN }}
+          GH_TOKEN: ${{ secrets.HOMEBREW_DOTGITHUB_WORKFLOW_TOKEN }}
   conclusion:
     needs: sync
     runs-on: ubuntu-latest
