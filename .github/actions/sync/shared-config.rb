@@ -183,7 +183,7 @@ puts "Detecting changes…"
       "#{dependabot_config}\n",
     )
   when deprecated_lock_threads
-    FileUtils.rm_f path
+    git "-C", target_directory, "rm", target_path.to_s
   else
     next if path == target_path.to_s
 
