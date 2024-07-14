@@ -96,6 +96,8 @@ rejected_docs_basenames = %w[
   README.md
 ].freeze
 
+deprecated_lock_threads = ".github/workflows/lock-threads.yml"
+
 puts "Detecting changes…"
 [
   docs,
@@ -104,6 +106,7 @@ puts "Detecting changes…"
   ruby_version,
   rubocop_yaml,
   dependabot_yaml,
+  deprecated_lock_threads,
   ".github/workflows/stale-issues.yml",
 ].each do |path|
   target_path = target_directory_path/path
@@ -179,6 +182,8 @@ puts "Detecting changes…"
       "# This file is synced from the `.github` repository, do not modify it directly.\n" \
       "#{dependabot_config}\n",
     )
+  when deprecated_lock_threads
+    FileUtils.rm_f target_path
   else
     next if path == target_path.to_s
 
