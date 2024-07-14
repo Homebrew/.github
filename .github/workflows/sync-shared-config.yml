@@ -111,7 +111,7 @@ jobs:
           cd target/${{ matrix.repo }}
           git checkout -b sync-shared-config
 
-          if !gh pr view sync-shared-config
+          if ! gh pr view sync-shared-config
           then
             gh pr create --head sync-shared-config --title "Synchronize shared configuration" --body 'This pull request was created automatically by the [`sync-shared-config`](https://github.com/Homebrew/.github/blob/HEAD/.github/actions/sync/shared-config.rb) workflow.'
           fi
