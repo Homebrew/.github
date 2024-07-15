@@ -109,7 +109,6 @@ jobs:
 
           cd target/${{ matrix.repo }}
           git checkout -b sync-shared-config
-          git push --set-upstream --force origin sync-shared-config
 
           if gh api \
               -X GET \
@@ -120,7 +119,14 @@ jobs:
               -f state=open |
               jq --exit-status 'length == 0'
           then
+            git push --set-upstream --force origin sync-shared-config
             gh pr create --head sync-shared-config --title "Synchronize shared configuration" --body 'This pull request was created automatically by the [`sync-shared-config`](https://github.com/Homebrew/.github/blob/HEAD/.github/actions/sync/shared-config.rb) workflow.'
+          else
+            git fetch origin sync-shared-config
+            if ! git diff --no-ext-diff --quiet --exit-code origin/sync-shared-config
+            then
+              git push --force origin sync-shared-config
+            fi
           fi
         env:
           GH_REPO: ${{ matrix.repo }}
