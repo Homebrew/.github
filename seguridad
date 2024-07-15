@@ -1,0 +1,41 @@
+Politica de seguridad
+Ninguna tecnología es perfecta y Homebrew cree que trabajar con investigadores de seguridad capacitados de todo el mundo es fundamental para identificar las debilidades de cualquier tecnología. Si cree que ha encontrado un problema de seguridad en Homebrew, le recomendamos que nos lo notifique. Nos complace trabajar con usted para resolver el problema rápidamente. ¡Gracias por mantener a Homebrew y a sus usuarios a salvo!
+
+Política de divulgación
+Avísenos lo antes posible si descubre un posible problema de seguridad y haremos todo lo posible para resolverlo rápidamente. Tenga en cuenta que somos un proyecto dirigido íntegramente por voluntarios en nuestro tiempo libre.
+
+Esfuércese de buena fe por evitar violaciones de la privacidad, destrucción de datos e interrupción o degradación de nuestro servicio. Interactúe únicamente con cuentas de su propiedad o con nuestro permiso explícito.
+
+Consulte la sección "Seguridad" de nuestro archivo README para obtener instrucciones sobre cómo informar una vulnerabilidad de seguridad.
+
+Si la solución es sencilla, envíe una solicitud de extracción en GitHub.
+
+Responderemos y solucionaremos las vulnerabilidades de seguridad reproducibles que se informen lo antes posible. Le recordamos amablemente que somos un proyecto dirigido por voluntarios, así que no sea tan duro con nosotros. Dénos un tiempo razonable para resolver el problema antes de divulgarlo al público o a un tercero.
+
+Versiones compatibles
+Homebrew es un gestor de paquetes de lanzamiento continuo. Esto significa:
+
+masterSolo se admiten la última versión y la última confirmación en la rama de Homebrew/brew.
+masterSolo se admite la última confirmación en la rama de todos los repositorios Homebrew.
+Alcance
+Los siguientes sitios y aplicaciones están dentro del alcance de este programa:
+
+El administrador de paquetes de cerveza (Homebrew/brew)
+Los grifos oficiales de Homebrew/homebrew-*
+Exclusiones
+Lo siguiente no constituye vulnerabilidades de seguridad en Homebrew:
+
+sitios web brew.sh
+Configuración SPF del dominio brew.sh
+Vulnerabilidades de seguridad en los servicios web alojados en los que se basa Homebrew (por ejemplo, GitHub, Google Analytics, GitHub Pages)
+Vulnerabilidades de seguridad en el software empaquetado que están presentes en el software original (aunque deben ser informadas al software original)
+Vulnerabilidades de seguridad en software utilizado pero no escrito por Homebrew
+Clickjacking nominal y ataques similares contra nuestros sitios web estáticos de GitHub Pages
+Conducta
+Durante la investigación, le pedimos que se abstenga de:
+
+Negación de servicio
+Spam
+Ingeniería social (incluido el phishing) de los mantenedores o colaboradores de Homebrew
+Cualquier intento físico contra las máquinas de Homebrew
+Realizar investigaciones de vulnerabilidad en público, como probar descubrimientos abriendo solicitudes de extracción a los repositorios públicos de Homebrew sin aprobación previa por escrito
