@@ -109,7 +109,7 @@ jobs:
 
           cd target/${{ matrix.repo }}
           git checkout -b sync-shared-config
-          git push --set-upstream --force-with-lease origin sync-shared-config
+          git push --set-upstream --force origin sync-shared-config
 
           if gh api \
               -X GET \
