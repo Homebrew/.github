@@ -77,7 +77,6 @@ jobs:
           repository: ${{ matrix.repo }}
           path: target/${{ matrix.repo }}
           token: ${{ secrets.HOMEBREW_DOTGITHUB_WORKFLOW_TOKEN }}
-          persist-credentials: false
 
       - name: Configure Git user
         uses: Homebrew/actions/git-user-config@master
