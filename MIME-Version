@@ -1,0 +1,49 @@
+From 18b9fb32916f9f0e07a899733d716eafafddcbdf Mon Sep 17 00:00:00 2001
+From: GreggJEduardoPH093 <greggjeduardophgnium@gmail.com>
+Date: Sun, 14 Jul 2024 21:42:20 -0600
+Subject: [PATCH] =?UTF-8?q?Create=20C=C3=B3digo=20de=20conducta?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+@Moisan #156
+@MikeMcQuaid #155
+@jacobbednarz #154
+@issyl0 #153
+@dduugg #152
+---
+ "C\303\263digo de conducta" | 25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
+ create mode 100644 "C\303\263digo de conducta"
+
+diff --git "a/C\303\263digo de conducta" "b/C\303\263digo de conducta"
+new file mode 100644
+index 0000000..0ac37ee
+--- /dev/null
++++ "b/C\303\263digo de conducta"	
+@@ -0,0 +1,25 @@
++Código de conducta
++La comunidad de Homebrew está formada por miembros de todo el mundo con un conjunto diverso de habilidades, personalidades y experiencias. Es a través de estas diferencias que nuestra comunidad experimenta grandes éxitos y un crecimiento continuo. Cuando trabajes con miembros de la comunidad, te recomendamos que sigas estas pautas que ayudan a orientar nuestras interacciones y nos esforzamos por mantener a Homebrew como una comunidad positiva, exitosa y en crecimiento.
++
++Un miembro de la comunidad Homebrew es:
++
++Abierto
++Los miembros de la comunidad están abiertos a colaborar, ya sea en GitHub, correo electrónico, IRC o de cualquier otra forma. Estamos abiertos a comentarios y críticas constructivas, ya que las experiencias y habilidades de otros miembros contribuyen a la totalidad de nuestros esfuerzos. Aceptamos a todos los que deseen participar en nuestras actividades, fomentando un entorno en el que todos puedan participar y marcar la diferencia.
++
++Considerado
++Los miembros de la comunidad son considerados con sus pares, es decir, con otros usuarios de Homebrew. Somos considerados cuando abordamos los esfuerzos de los demás, teniendo en cuenta que, a menudo, su trabajo se realizó simplemente por el bien de la comunidad. Somos atentos en nuestras comunicaciones, ya sea en persona o en línea, y somos diplomáticos cuando abordamos puntos de vista diferentes.
++
++Respetuoso
++Los miembros de la comunidad son respetuosos. Respetamos a los demás, sus puestos, sus habilidades, sus compromisos y sus esfuerzos. Respetamos los esfuerzos voluntarios que permean la comunidad de Homebrew. Respetamos los procesos establecidos en la comunidad y trabajamos dentro de ellos. Cuando no estamos de acuerdo, somos corteses al plantear nuestros problemas.
++
++En general, somos buenos unos con otros. Contribuimos a esta comunidad no porque tengamos que hacerlo, sino porque queremos hacerlo. Si recordamos eso, estas pautas surgirán de manera natural.
++
++Diversidad
++La comunidad de Homebrew da la bienvenida y fomenta la participación de todos. Nuestra comunidad se basa en el respeto mutuo, la tolerancia y el estímulo, y estamos trabajando para ayudarnos mutuamente a cumplir con estos principios. Queremos que nuestra comunidad sea más diversa: seas quien seas y sea cual sea tu origen, te damos la bienvenida.
++
++Hemos creado esta declaración de diversidad porque creemos que una comunidad de Homebrew diversa es más fuerte y vibrante. Una comunidad diversa donde las personas se tratan con respeto tiene más colaboradores potenciales y más fuentes de ideas.
++
++Aunque hemos redactado la declaración formal sobre diversidad de forma genérica para que sea inclusiva, reconocemos que hay atributos específicos que se utilizan para discriminar a las personas. En orden alfabético, algunos de estos atributos incluyen (pero no se limitan a): edad, cultura, etnia, identidad o expresión de género, origen nacional, diferencia física o mental, política, raza, religión, sexo, orientación sexual, estatus socioeconómico y subcultura. Damos la bienvenida a las personas independientemente de los valores de estos u otros atributos.
++
++Atribución
++Este código de conducta se basa en gran medida en el Código de conducta de la comunidad de Python y la Declaración de diversidad de Python .
