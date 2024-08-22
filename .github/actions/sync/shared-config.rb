@@ -78,6 +78,7 @@ custom_rubocop_repos = %w[
   mass-bottling-tracker-private
   orka_api_client
   ruby-macho
+  governance-private
 ].freeze
 custom_dependabot_repos = %w[
   .github
