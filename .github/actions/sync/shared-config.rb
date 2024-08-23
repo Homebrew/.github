@@ -51,6 +51,7 @@ homebrew_docs_rubocop_config_yaml = YAML.load_file(
   homebrew_repository_path/"docs/#{rubocop_yaml}",
   permitted_classes: [Symbol, Regexp],
 )
+homebrew_docs_rubocop_config_yaml["AllCops"]["Exclude"] << '"vendor/**/*"'
 homebrew_docs_rubocop_config = homebrew_docs_rubocop_config_yaml.reject do |key, _|
   key.match?(%r{\AFormulaAudit/|Sorbet/})
 end.to_yaml
