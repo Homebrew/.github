@@ -139,6 +139,11 @@ puts "Detecting changes…"
         Dir.chdir target_path do
           FileUtils.ln_s "../#{docs_path_basename}", "."
         end
+      elsif docs_path_basename == ".rubocop.yml"
+        docs_rubocop = docs_path.read
+                                .sub("inherit_from: ../Library/.rubocop.yml",
+                                     "inherit_from: ../.rubocop.yml")
+        target_docs_path.write(docs_rubocop)
       else
         FileUtils.cp docs_path, target_docs_path
       end
