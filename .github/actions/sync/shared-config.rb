@@ -171,7 +171,8 @@ puts "Detecting changes…"
     FileUtils.rm_f target_path
     target_path.write(
       "# This file is synced from `Homebrew/brew` by the `.github` repository, do not modify it directly.\n" \
-      "#{homebrew_rubocop_config}\n",
+      "#{homebrew_rubocop_config}" \
+      "Sorbet/StrictSigil:\n  Enabled: false\n\n",
     )
   when dependabot_yaml
     next if custom_dependabot_repos.include?(repository_name)
