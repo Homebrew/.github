@@ -47,6 +47,14 @@ homebrew_rubocop_config_yaml = YAML.load_file(
 homebrew_rubocop_config = homebrew_rubocop_config_yaml.reject do |key, _|
   key.match?(%r{\Arequire|inherit_from|inherit_mode|Cask/|Formula|Homebrew|Performance/|RSpec|Sorbet/})
 end.to_yaml
+homebrew_docs_rubocop_config_yaml = YAML.load_file(
+  homebrew_repository_path/"docs/#{rubocop_yaml}",
+  permitted_classes: [Symbol, Regexp],
+)
+homebrew_docs_rubocop_config = homebrew_docs_rubocop_config_yaml.reject do |key, _|
+  key.match?(%r{\AFormulaAudit/|Sorbet/})
+end.to_yaml
+   .sub('inherit_from: "../Library/.rubocop.yml"', 'inherit_from: "../.rubocop.yml"')
 homebrew_docs_workflow_yaml = homebrew_repository_path/docs_workflow_yaml
 homebrew_vale_ini = homebrew_repository_path/vale_ini
 
@@ -140,10 +148,11 @@ puts "Detecting changes…"
           FileUtils.ln_s "../#{docs_path_basename}", "."
         end
       elsif docs_path_basename == ".rubocop.yml"
-        docs_rubocop = docs_path.read
-                                .sub("inherit_from: ../Library/.rubocop.yml",
-                                     "inherit_from: ../.rubocop.yml")
-        target_docs_path.write(docs_rubocop)
+        FileUtils.rm_f target_docs_path
+        target_docs_path.write(
+          "# This file is synced from `Homebrew/brew` by the `.github` repository, do not modify it directly.\n" \
+          "#{homebrew_docs_rubocop_config}\n",
+        )
       else
         FileUtils.cp docs_path, target_docs_path
       end
