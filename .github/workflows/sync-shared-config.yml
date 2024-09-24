@@ -11,6 +11,10 @@ on:
 permissions:
   contents: read
 
+defaults:
+  run:
+    shell: bash -xeuo pipefail {0}
+
 concurrency:
   group: "sync-shared-config-${{ github.ref }}"
   cancel-in-progress: true
@@ -62,12 +66,12 @@ jobs:
           persist-credentials: false
 
       - run: brew install-bundler-gems --groups=style
-        if: ${{ matrix.repo == 'Homebrew/.github' }}
+        if: matrix.repo == 'Homebrew/.github'
         env:
           HOMEBREW_DEVELOPER: 1
 
       - run: brew style .github/actions/sync/*.rb
-        if: ${{ matrix.repo == 'Homebrew/.github' }}
+        if: matrix.repo == 'Homebrew/.github'
         env:
           HOMEBREW_DEVELOPER: 1
 
@@ -103,13 +107,13 @@ jobs:
         run: ./.github/actions/sync/shared-config.rb 'target/${{ matrix.repo }}' '/home/linuxbrew/.linuxbrew/Homebrew'
 
       - name: Create pull request
-        if: ${{ github.ref == 'refs/heads/master' && steps.detect_changes.outputs.pull_request == 'true' }}
+        if: github.ref == 'refs/heads/master' && steps.detect_changes.outputs.pull_request == 'true'
         run: |
-          set -euo pipefail
-
-          cd target/${{ matrix.repo }}
+          cd "target/$GH_REPO"
           git checkout -b sync-shared-config
 
+          # Stagger network calls over the next 10 minutes to minimise errors.
+          sleep "$(( RANDOM % 60 * 10 ))"
           if gh api \
               -X GET \
               --header 'Accept: application/vnd.github+json' \
