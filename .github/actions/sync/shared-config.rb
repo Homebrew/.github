@@ -29,6 +29,7 @@ ruby_version = ".ruby-version"
 rubocop_yaml = ".rubocop.yml"
 dependabot_yaml = ".github/dependabot.yml"
 docs_workflow_yaml = ".github/workflows/docs.yml"
+actionlint_workflow_yaml = ".github/workflows/actionlint.yml"
 vale_ini = ".vale.ini"
 
 target_gemfile_lock = target_directory_path/"Gemfile.lock"
@@ -98,6 +99,10 @@ custom_docs_repos = %w[
   rubydoc.brew.sh
   ruby-macho
 ].freeze
+custom_actionlint_repos = %w[
+  brew
+  homebrew-core
+]
 rejected_docs_basenames = %w[
   _config.yml
   CNAME
@@ -116,6 +121,7 @@ puts "Detecting changes…"
   rubocop_yaml,
   dependabot_yaml,
   deprecated_lock_threads,
+  actionlint_workflow_yaml,
   ".github/workflows/stale-issues.yml",
 ].each do |path|
   target_path = target_directory_path/path
@@ -166,6 +172,10 @@ puts "Detecting changes…"
     next unless docs_path.directory?
 
     FileUtils.cp homebrew_docs_workflow_yaml, target_path
+  when actionlint_workflow_yaml
+    next if custom_actionlint_repos.include?(repository_name)
+
+    FileUtils.cp actionlint_workflow_yaml, target_path
   when vale_ini
     next if custom_docs_repos.include?(repository_name)
 
