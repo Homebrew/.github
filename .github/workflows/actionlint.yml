@@ -67,7 +67,7 @@ jobs:
     if: >
       always() &&
       !contains(fromJSON('[["cancelled", "skipped"]]'), needs.workflow_syntax.result) &&
-      !github.repository.private
+      !github.event.repository.private
     runs-on: ubuntu-latest
     permissions:
       contents: read
