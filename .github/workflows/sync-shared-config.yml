@@ -104,7 +104,8 @@ jobs:
         id: detect_changes
         env:
           HOMEBREW_GPG_PASSPHRASE: ${{ secrets.BREWTESTBOT_GPG_SIGNING_SUBKEY_PASSPHRASE }}
-        run: ./.github/actions/sync/shared-config.rb 'target/${{ matrix.repo }}' '/home/linuxbrew/.linuxbrew/Homebrew'
+          TARGET: target/${{ matrix.repo }}
+        run: ./.github/actions/sync/shared-config.rb "${TARGET}" '/home/linuxbrew/.linuxbrew/Homebrew'
 
       - name: Create pull request
         if: github.ref == 'refs/heads/master' && steps.detect_changes.outputs.pull_request == 'true'
@@ -118,12 +119,14 @@ jobs:
               -X GET \
               --header 'Accept: application/vnd.github+json' \
               --header 'X-GitHub-Api-Version: 2022-11-28' \
-              /repos/{owner}/{repo}/pulls \
+              "/repos/${GH_REPO}/pulls" \
               -f head=Homebrew:sync-shared-config \
               -f state=open |
               jq --exit-status 'length == 0'
           then
             git push --set-upstream --force origin sync-shared-config
+            # We don't want backticks to be expanded.
+            # shellcheck disable=SC2016
             gh pr create --head sync-shared-config --title "Synchronize shared configuration" --body 'This pull request was created automatically by the [`sync-shared-config`](https://github.com/Homebrew/.github/blob/HEAD/.github/actions/sync/shared-config.rb) workflow.'
           else
             git fetch origin sync-shared-config
@@ -141,4 +144,7 @@ jobs:
     if: always()
     steps:
       - name: Result
-        run: ${{ needs.sync.result == 'success' }}
+        env:
+          RESULT: ${{ needs.sync.result }}
+        run: |
+          [[ "${RESULT}" == success ]]
