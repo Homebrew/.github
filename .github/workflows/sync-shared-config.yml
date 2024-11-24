@@ -82,6 +82,8 @@ jobs:
           repository: ${{ matrix.repo }}
           path: target/${{ matrix.repo }}
           token: ${{ secrets.HOMEBREW_DOTGITHUB_WORKFLOW_TOKEN }}
+          # Intentioanlly persisted to allow `git push` below.
+          persist-credentials: true
 
       - name: Configure Git user
         uses: Homebrew/actions/git-user-config@master
