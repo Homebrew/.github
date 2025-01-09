@@ -111,7 +111,7 @@ jobs:
         run: ./.github/actions/sync/shared-config.rb "${TARGET}" '/home/linuxbrew/.linuxbrew/Homebrew'
 
       - name: Create pull request
-        if: github.ref == 'refs/heads/master' && steps.detect_changes.outputs.pull_request == 'true'
+        if: github.event_name != 'push'
         run: |
           cd "target/$GH_REPO"
           git checkout -b sync-shared-config
