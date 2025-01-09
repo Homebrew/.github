@@ -7,7 +7,7 @@ updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: daily
+      interval: weekly
     allow:
       - dependency-type: all
     # The actions in triage-issues.yml are updated in the Homebrew/.github repo
