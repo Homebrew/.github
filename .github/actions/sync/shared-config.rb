@@ -220,8 +220,8 @@ end
 
 # Update Gemfile.lock if it exists, based on the Ruby version.
 #
-# rubocop:disable Homebrew/NegateInclude
 # We don't have Homebrew exclude? method here.
+# rubocop:disable Homebrew/NegateInclude
 if !custom_ruby_version_repos.include?(repository_name) && target_gemfile_lock.exist?
   Dir.chdir target_directory_path do
     require "bundler"
