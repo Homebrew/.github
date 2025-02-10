@@ -90,10 +90,11 @@ jobs:
         with:
           username: BrewTestBot
 
-      - name: Set up GPG commit signing
+      - name: Set up SSH commit signing
         uses: Homebrew/actions/setup-commit-signing@master
         with:
-          signing_key: ${{ secrets.BREWTESTBOT_GPG_SIGNING_SUBKEY }}
+          ssh: true
+          signing_key: ${{ secrets.BREWTESTBOT_SSH_SIGNING_KEY }}
 
       - name: Sync initial Ruby version
         run: cp /home/linuxbrew/.linuxbrew/Homebrew/Library/Homebrew/.ruby-version .
@@ -106,7 +107,6 @@ jobs:
       - name: Detect changes
         id: detect_changes
         env:
-          HOMEBREW_GPG_PASSPHRASE: ${{ secrets.BREWTESTBOT_GPG_SIGNING_SUBKEY_PASSPHRASE }}
           TARGET: target/${{ matrix.repo }}
         run: ./.github/actions/sync/shared-config.rb "${TARGET}" '/home/linuxbrew/.linuxbrew/Homebrew'
 
