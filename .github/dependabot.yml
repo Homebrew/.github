@@ -8,6 +8,8 @@ updates:
     directory: /
     schedule:
       interval: weekly
+      # every Monday at 8AM
+      cron: "0 8 * * 1"
     allow:
       - dependency-type: all
     # The actions in triage-issues.yml are updated in the Homebrew/.github repo
@@ -21,34 +23,44 @@ updates:
   - package-ecosystem: bundler
     directory: /
     schedule:
-      interval: daily
+      interval: weekly
+      # every Monday at 8AM
+      cron: "0 8 * * 1"
     allow:
       - dependency-type: all
 
   - package-ecosystem: npm
     directory: /
     schedule:
-      interval: daily
+      interval: weekly
+      # every Monday at 8AM
+      cron: "0 8 * * 1"
     allow:
       - dependency-type: all
 
   - package-ecosystem: docker
     directory: /
     schedule:
-      interval: daily
+      interval: weekly
+      # every Monday at 8AM
+      cron: "0 8 * * 1"
     allow:
       - dependency-type: all
 
   - package-ecosystem: devcontainers
     directory: /
     schedule:
-      interval: daily
+      interval: weekly
+      # every Monday at 8AM
+      cron: "0 8 * * 1"
     allow:
       - dependency-type: all
 
   - package-ecosystem: pip
     directory: /
     schedule:
-      interval: daily
+      interval: weekly
+      # every Monday at 8AM
+      cron: "0 8 * * 1"
     allow:
       - dependency-type: all

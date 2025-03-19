@@ -6,7 +6,7 @@ on:
       - master
   pull_request:
   schedule:
-    - cron: "0 8 * * 1" # Every Monday at 8 AM
+    - cron: "0 8 * * 4" # Every Thursday at 8 AM
   workflow_dispatch:
 
 permissions:
@@ -37,24 +37,17 @@ jobs:
           - Homebrew/formula-patches
           - Homebrew/formulae.brew.sh
           - Homebrew/glibc-bootstrap
-          - Homebrew/homebrew-aliases
-          - Homebrew/homebrew-bundle
           - Homebrew/homebrew-cask
           - Homebrew/homebrew-command-not-found
           - Homebrew/homebrew-core
-          - Homebrew/homebrew-formula-analytics
-          - Homebrew/homebrew-linux-fonts
           - Homebrew/homebrew-portable-ruby
-          - Homebrew/homebrew-services
           - Homebrew/homebrew-test-bot
           - Homebrew/install
           - Homebrew/orka_api_client
           - Homebrew/ruby-macho
           - Homebrew/rubydoc.brew.sh
           - Homebrew/mass-bottling-tracker-private
-          - Homebrew/governance-private
-          - Homebrew/security-private
-          - Homebrew/ops-private
+          - Homebrew/private
       fail-fast: false
     steps:
       - name: Set up Homebrew
