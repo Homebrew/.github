@@ -8,8 +8,8 @@ updates:
     directory: /
     schedule:
       interval: weekly
-      # every Monday at 8AM
-      cron: "0 8 * * 1"
+      day: monday
+      time: "08:00"
     allow:
       - dependency-type: all
     # The actions in triage-issues.yml are updated in the Homebrew/.github repo
@@ -24,8 +24,8 @@ updates:
     directory: /
     schedule:
       interval: weekly
-      # every Monday at 8AM
-      cron: "0 8 * * 1"
+      day: monday
+      time: "08:00"
     allow:
       - dependency-type: all
 
@@ -33,8 +33,8 @@ updates:
     directory: /
     schedule:
       interval: weekly
-      # every Monday at 8AM
-      cron: "0 8 * * 1"
+      day: monday
+      time: "08:00"
     allow:
       - dependency-type: all
 
@@ -42,8 +42,8 @@ updates:
     directory: /
     schedule:
       interval: weekly
-      # every Monday at 8AM
-      cron: "0 8 * * 1"
+      day: monday
+      time: "08:00"
     allow:
       - dependency-type: all
 
@@ -51,8 +51,8 @@ updates:
     directory: /
     schedule:
       interval: weekly
-      # every Monday at 8AM
-      cron: "0 8 * * 1"
+      day: monday
+      time: "08:00"
     allow:
       - dependency-type: all
 
@@ -60,7 +60,7 @@ updates:
     directory: /
     schedule:
       interval: weekly
-      # every Monday at 8AM
-      cron: "0 8 * * 1"
+      day: monday
+      time: "08:00"
     allow:
       - dependency-type: all
