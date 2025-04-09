@@ -47,7 +47,7 @@ homebrew_rubocop_config_yaml = YAML.load_file(
 )
 homebrew_rubocop_config_yaml["AllCops"]["Exclude"] << "**/vendor/**/*"
 homebrew_rubocop_config = homebrew_rubocop_config_yaml.reject do |key, _|
-  key.match?(%r{\Arequire|inherit_from|inherit_mode|Cask/|Formula|Homebrew|Performance/|RSpec|Sorbet/})
+  key.match?(%r{\Arequire|plugins|inherit_from|inherit_mode|Cask/|Formula|Homebrew|Performance/|RSpec|Sorbet/})
 end.to_yaml
 homebrew_docs_rubocop_config_yaml = YAML.load_file(
   homebrew_repository_path/"docs/#{rubocop_yaml}",
@@ -86,7 +86,6 @@ custom_ruby_version_repos = %w[
 custom_rubocop_repos = %w[
   ci-orchestrator
   mass-bottling-tracker-private
-  orka_api_client
   ruby-macho
 ].freeze
 custom_dependabot_repos = %w[
