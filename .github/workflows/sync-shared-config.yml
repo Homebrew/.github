@@ -102,7 +102,7 @@ jobs:
         run: ./.github/actions/sync/shared-config.rb "${TARGET}" '/home/linuxbrew/.linuxbrew/Homebrew'
 
       - name: Create pull request
-        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        if: (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && steps.detect_changes.outputs.pull_request == 'true'
         run: |
           cd "target/$GH_REPO"
           git checkout -b sync-shared-config
