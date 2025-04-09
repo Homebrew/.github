@@ -86,7 +86,6 @@ custom_ruby_version_repos = %w[
 custom_rubocop_repos = %w[
   ci-orchestrator
   mass-bottling-tracker-private
-  orka_api_client
   ruby-macho
 ].freeze
 custom_dependabot_repos = %w[
