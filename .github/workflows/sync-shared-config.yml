@@ -21,32 +21,49 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  generate-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.generate-matrix.outputs.matrix }}
+    steps:
+      - name: Generate matrix
+        id: generate-matrix
+        env:
+          SKIP_PRIVATE: ${{ github.event_name == 'pull_request' && github.actor == 'dependabot[bot]' }}
+        run: |
+          repositories=(
+            Homebrew/.github
+            Homebrew/actions
+            Homebrew/brew
+            Homebrew/brew-pip-audit
+            Homebrew/brew.sh
+            Homebrew/ci-orchestrator
+            Homebrew/discussions
+            Homebrew/formula-patches
+            Homebrew/formulae.brew.sh
+            Homebrew/glibc-bootstrap
+            Homebrew/homebrew-cask
+            Homebrew/homebrew-command-not-found
+            Homebrew/homebrew-core
+            Homebrew/homebrew-portable-ruby
+            Homebrew/homebrew-test-bot
+            Homebrew/install
+            Homebrew/ruby-macho
+            Homebrew/rubydoc.brew.sh
+            Homebrew/mass-bottling-tracker-private
+            Homebrew/private
+          )
+          if [[ "${SKIP_PRIVATE}" == true ]]; then
+            read -r -a repositories <<< "${repositories[@]//*private}"
+          fi
+          echo "matrix=$(jq -cn '$ARGS.positional' --args -- "${repositories[@]}")" >> "${GITHUB_OUTPUT}"
   sync:
     if: github.repository == 'Homebrew/.github'
+    needs: generate-matrix
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        repo:
-          - Homebrew/.github
-          - Homebrew/actions
-          - Homebrew/brew
-          - Homebrew/brew-pip-audit
-          - Homebrew/brew.sh
-          - Homebrew/ci-orchestrator
-          - Homebrew/discussions
-          - Homebrew/formula-patches
-          - Homebrew/formulae.brew.sh
-          - Homebrew/glibc-bootstrap
-          - Homebrew/homebrew-cask
-          - Homebrew/homebrew-command-not-found
-          - Homebrew/homebrew-core
-          - Homebrew/homebrew-portable-ruby
-          - Homebrew/homebrew-test-bot
-          - Homebrew/install
-          - Homebrew/ruby-macho
-          - Homebrew/rubydoc.brew.sh
-          - Homebrew/mass-bottling-tracker-private
-          - Homebrew/private
+        repo: ${{fromJson(needs.generate-matrix.outputs.matrix)}}
       fail-fast: false
     steps:
       - name: Set up Homebrew
@@ -73,7 +90,7 @@ jobs:
         with:
           repository: ${{ matrix.repo }}
           path: target/${{ matrix.repo }}
-          token: ${{ secrets.HOMEBREW_DOTGITHUB_WORKFLOW_TOKEN }}
+          token: ${{ secrets.HOMEBREW_DOTGITHUB_WORKFLOW_TOKEN || github.token }}
           # Intentioanlly persisted to allow `git push` below.
           persist-credentials: true
 
