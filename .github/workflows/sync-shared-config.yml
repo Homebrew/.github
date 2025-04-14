@@ -100,6 +100,7 @@ jobs:
           username: BrewTestBot
 
       - name: Set up SSH commit signing
+        if: github.event_name != 'pull_request' || github.actor != 'dependabot[bot]'
         uses: Homebrew/actions/setup-commit-signing@master
         with:
           signing_key: ${{ secrets.BREWTESTBOT_SSH_SIGNING_KEY }}
