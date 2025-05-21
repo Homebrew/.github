@@ -6,7 +6,7 @@ on:
       - master
   pull_request:
   schedule:
-    - cron: "0 8 * * 4" # Every Thursday at 8 AM
+    - cron: "0 8 * * 2" # Every Tuesday at 8 AM
   workflow_dispatch:
 
 permissions:
