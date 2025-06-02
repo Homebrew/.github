@@ -90,8 +90,6 @@ custom_rubocop_repos = %w[
 ].freeze
 custom_dependabot_repos = %w[
   .github
-  brew
-  ci-orchestrator
 ].freeze
 custom_docs_repos = %w[
   brew
