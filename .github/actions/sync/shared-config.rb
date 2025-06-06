@@ -61,8 +61,8 @@ homebrew_docs_workflow_yaml = homebrew_repository_path/docs_workflow_yaml
 homebrew_vale_ini = homebrew_repository_path/vale_ini
 
 dependabot_config_yaml = YAML.load_file(dependabot_yaml)
-dependabot_config_yaml["updates"].select! do |update|
-  case update["package-ecosystem"]
+dependabot_config_yaml["updates"] = dependabot_config_yaml["updates"].filter_map do |update|
+  keep_update = case update["package-ecosystem"]
   when "bundler"
     target_gemfile_lock.exist?
   when "npm"
@@ -76,6 +76,15 @@ dependabot_config_yaml["updates"].select! do |update|
   else
     true
   end
+  next unless keep_update
+
+  # This should be run after dependabot.yml for this repository (Monday)
+  # and after the sync-shared-config job for synced repositories (Wednesday).
+  # This maximises the chance of a single sync per week handling both any
+  # changes and any dependabot updates.
+  update["schedule"]["day"] = "friday"
+
+  update
 end
 dependabot_config = dependabot_config_yaml.to_yaml
 
