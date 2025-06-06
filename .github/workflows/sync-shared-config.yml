@@ -6,7 +6,11 @@ on:
       - master
   pull_request:
   schedule:
-    - cron: "0 8 * * 2" # Every Tuesday at 8 AM
+    # This should be run after dependabot.yml for this repository (Monday)
+    # and before dependabot.yml for synced repositories (Friday).
+    # This maximises the chance of a single sync per week handling both any
+    # changes and any dependabot updates.
+    - cron: "0 8 * * 3" # Every Wednesday at 8 AM
   workflow_dispatch:
 
 permissions:
