@@ -8,7 +8,7 @@ Let us know as soon as possible upon discovery of a potential security issue, an
 
 Make a good faith effort to avoid privacy violations, destruction of data, and interruption or degradation of our service. Only interact with accounts you own or with our explicit permission.
 
-See the ["Security" section of our README](https://github.com/Homebrew/brew/blob/master/README.md#security) for instructions on how to report a security vulnerability.
+See the ["Security" section of our README](https://github.com/Homebrew/brew/blob/HEAD/README.md#security) for instructions on how to report a security vulnerability.
 
 If it's a straightforward fix: please submit a pull request on GitHub.
 
@@ -18,14 +18,14 @@ We will respond to and fix reported, reproducible security vulnerabilities as so
 
 Homebrew is a rolling release package manager. This means:
 
-- only the latest release and latest commit on the `master` branch of Homebrew/brew are supported.
-- only the latest commit on the `master` branch of all Homebrew repositories is supported.
+- only the latest release and latest commit on the `main` (or `master` if not yet migrated to `main`) branch of Homebrew/brew are supported.
+- only the latest commit on the `main` (or `master` if not yet migrated to `main`) branch of all Homebrew repositories is supported.
 
 ## Scope
 
 The following sites and applications are within scope for this program:
 
-- The brew package manager (Homebrew/brew)
+- The `brew` package manager (Homebrew/brew)
 - The Homebrew/homebrew-* official taps
 
 ## Exclusions
