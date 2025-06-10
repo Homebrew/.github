@@ -3,7 +3,7 @@ name: Sync shared configurations
 on:
   push:
     branches:
-      - master
+      - main
   pull_request:
   schedule:
     # This should be run after dependabot.yml for this repository (Monday)
