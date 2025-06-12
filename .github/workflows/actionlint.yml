@@ -56,7 +56,15 @@ jobs:
           path: results.sarif
 
       - name: Set up actionlint
-        run: echo "::add-matcher::$(brew --repository)/.github/actionlint-matcher.json"
+        run: |
+          # In homebrew-core, setting `shell: /bin/bash` prevents shellcheck from running on
+          # those steps, so let's change them to `shell: bash` temporarily for better linting.
+          sed -i 's|shell: /bin/bash -x|shell: bash -x|' .github/workflows/*.y*ml
+
+          # In homebrew-core, the JSON matcher needs to be accessible to the container host.
+          cp "$(brew --repository)/.github/actionlint-matcher.json" "$HOME"
+
+          echo "::add-matcher::$HOME/actionlint-matcher.json"
 
       - run: actionlint
 
