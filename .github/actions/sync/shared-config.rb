@@ -130,6 +130,7 @@ puts "Detecting changes…"
   actionlint_workflow_yaml,
   ".github/workflows/stale-issues.yml",
   ".github/zizmor.yml",
+  ".github/codeql/extensions/homebrew-actions.yml",
 ].each do |path|
   target_path = target_directory_path/path
   target_path.dirname.mkpath
