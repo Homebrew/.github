@@ -1,4 +1,3 @@
-# This file is synced from the `.github` repository, do not modify it directly.
 name: Actionlint
 
 on:
@@ -6,7 +5,14 @@ on:
     branches:
       - main
       - master
+    paths:
+      - '.github/workflows/*.ya?ml'
+      - 'Formula/a/actionlint.rb'
+      - 'Formula/s/shellcheck.rb'
+      - 'Formula/z/zizmor.rb'
   pull_request:
+    paths:
+      - '.github/workflows/*.ya?ml'
 
 defaults:
   run:

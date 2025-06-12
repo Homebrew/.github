@@ -97,18 +97,6 @@ custom_rubocop_repos = %w[
   mass-bottling-tracker-private
   ruby-macho
 ].freeze
-custom_dependabot_repos = %w[
-  .github
-].freeze
-custom_docs_repos = %w[
-  brew
-  rubydoc.brew.sh
-  ruby-macho
-].freeze
-custom_actionlint_repos = %w[
-  brew
-  homebrew-core
-]
 rejected_docs_basenames = %w[
   _config.yml
   CNAME
@@ -137,7 +125,6 @@ puts "Detecting changes…"
 
   case path
   when docs
-    next if custom_docs_repos.include?(repository_name)
     next if path == target_path.to_s
     next unless target_path.exist?
     next unless target_path.directory?
@@ -172,26 +159,24 @@ puts "Detecting changes…"
         FileUtils.cp docs_path, target_docs_path
       end
     end
-  when docs_workflow_yaml
-    next if custom_docs_repos.include?(repository_name)
-
+  when docs_workflow_yaml, vale_ini
     docs_path = target_directory_path/docs
     next unless docs_path.exist?
     next unless docs_path.directory?
 
-    FileUtils.cp homebrew_docs_workflow_yaml, target_path
-  when actionlint_workflow_yaml
-    next if custom_actionlint_repos.include?(repository_name)
+    path = case path
+    when docs_workflow_yaml then homebrew_docs_workflow_yaml
+    when vale_ini           then homebrew_vale_ini
+    else raise "Unexpected path: #{path}"
+    end
+    next if path == target_path.to_s
 
-    FileUtils.cp actionlint_workflow_yaml, target_path
-  when vale_ini
-    next if custom_docs_repos.include?(repository_name)
-
-    docs_path = target_directory_path/docs
-    next unless docs_path.exist?
-    next unless docs_path.directory?
-
-    FileUtils.cp homebrew_vale_ini, target_path
+    contents = path.read
+    FileUtils.rm_f target_path
+    target_path.write(
+      "# This file is synced from `Homebrew/brew` by the `.github` repository, do not modify it directly.\n" \
+      "#{contents}\n",
+    )
   when ruby_version
     next if custom_ruby_version_repos.include?(repository_name)
 
@@ -206,14 +191,19 @@ puts "Detecting changes…"
       "# This file is synced from `Homebrew/brew` by the `.github` repository, do not modify it directly.\n" \
       "#{homebrew_rubocop_config}\n",
     )
-  when dependabot_yaml
-    next if custom_dependabot_repos.include?(repository_name)
+  when dependabot_yaml, actionlint_workflow_yaml
     next if path == target_path.to_s
+
+    contents = if path == dependabot_yaml
+      dependabot_config
+    else
+      Pathname(path).read
+    end
 
     FileUtils.rm_f target_path
     target_path.write(
       "# This file is synced from the `.github` repository, do not modify it directly.\n" \
-      "#{dependabot_config}\n",
+      "#{contents}\n",
     )
   when deprecated_lock_threads
     next unless target_path.exist?
