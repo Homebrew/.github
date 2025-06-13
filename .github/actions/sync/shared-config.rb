@@ -31,6 +31,9 @@ dependabot_yaml = ".github/dependabot.yml"
 docs_workflow_yaml = ".github/workflows/docs.yml"
 actionlint_workflow_yaml = ".github/workflows/actionlint.yml"
 vale_ini = ".vale.ini"
+stale_issues_workflow_yaml = ".github/workflows/stale-issues.yml"
+zizmor_yml = ".github/zizmor.yml"
+codeql_extensions_homebrew_actions_yml = ".github/codeql/extensions/homebrew-actions.yml"
 
 target_gemfile_lock = target_directory_path/"Gemfile.lock"
 
@@ -116,9 +119,9 @@ puts "Detecting changes…"
   dependabot_yaml,
   deprecated_lock_threads,
   actionlint_workflow_yaml,
-  ".github/workflows/stale-issues.yml",
-  ".github/zizmor.yml",
-  ".github/codeql/extensions/homebrew-actions.yml",
+  stale_issues_workflow_yaml,
+  zizmor_yml,
+  codeql_extensions_homebrew_actions_yml,
 ].each do |path|
   target_path = target_directory_path/path
   target_path.dirname.mkpath
@@ -191,7 +194,8 @@ puts "Detecting changes…"
       "# This file is synced from `Homebrew/brew` by the `.github` repository, do not modify it directly.\n" \
       "#{homebrew_rubocop_config}\n",
     )
-  when dependabot_yaml, actionlint_workflow_yaml
+  when dependabot_yaml, actionlint_workflow_yaml, stale_issues_workflow_yaml,
+       zizmor_yml, codeql_extensions_homebrew_actions_yml
     next if path == target_path.to_s
 
     contents = if path == dependabot_yaml
