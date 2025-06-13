@@ -202,6 +202,7 @@ puts "Detecting changes…"
       dependabot_config
     else
       Pathname(path).read
+                    .chomp
     end
 
     FileUtils.rm_f target_path
