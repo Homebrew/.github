@@ -128,6 +128,9 @@ puts "Detecting changes…"
 
   case path
   when docs
+    # The docs templates are from the `brew` repository so we don't want to "sync" them.
+    next if repository_name == "brew"
+
     next if path == target_path.to_s
     next unless target_path.exist?
     next unless target_path.directory?
@@ -163,6 +166,9 @@ puts "Detecting changes…"
       end
     end
   when docs_workflow_yaml, vale_ini
+    # The docs templates are from the `brew` repository so we don't want to "sync" them.
+    next if repository_name == "brew"
+
     docs_path = target_directory_path/docs
     next unless docs_path.exist?
     next unless docs_path.directory?
@@ -199,6 +205,9 @@ puts "Detecting changes…"
     next if path == target_path.to_s
 
     contents = if path == dependabot_yaml
+      # ensure we don't replace the template dependabot.yml in this repository
+      next if repository_name == ".github"
+
       dependabot_config
     else
       Pathname(path).read
