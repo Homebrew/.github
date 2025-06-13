@@ -27,10 +27,10 @@ end
 docs = "docs"
 ruby_version = ".ruby-version"
 rubocop_yaml = ".rubocop.yml"
+vale_ini = ".vale.ini"
 dependabot_yaml = ".github/dependabot.yml"
 docs_workflow_yaml = ".github/workflows/docs.yml"
 actionlint_workflow_yaml = ".github/workflows/actionlint.yml"
-vale_ini = ".vale.ini"
 stale_issues_workflow_yaml = ".github/workflows/stale-issues.yml"
 zizmor_yml = ".github/zizmor.yml"
 codeql_extensions_homebrew_actions_yml = ".github/codeql/extensions/homebrew-actions.yml"
@@ -204,10 +204,10 @@ puts "Detecting changes…"
        zizmor_yml, codeql_extensions_homebrew_actions_yml
     next if path == target_path.to_s
 
-    contents = if path == dependabot_yaml
-      # ensure we don't replace the template dependabot.yml in this repository
-      next if repository_name == ".github"
+    # ensure we don't replace the template files in this repository
+    next if repository_name == ".github"
 
+    contents = if path == dependabot_yaml
       dependabot_config
     else
       Pathname(path).read
