@@ -35,6 +35,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    container:
+      image: ghcr.io/homebrew/ubuntu22.04:main
     steps:
       - name: Set up Homebrew
         id: setup-homebrew
