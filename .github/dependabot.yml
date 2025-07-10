@@ -3,6 +3,11 @@
 # this repository. They will be stripped out if unneeded by the sync action.
 version: 2
 
+groups:
+  dependabot:
+    patterns:
+      - "*"
+
 updates:
   - package-ecosystem: github-actions
     directory: /
@@ -13,10 +18,10 @@ updates:
       timezone: "Etc/UTC"
     allow:
       - dependency-type: all
-    groups:
-      github-actions:
-        patterns:
-          - "*"
+    cooldown:
+      semver-major-days: 14
+      semver-minor-days: 7
+      semver-patch-days: 1
 
   - package-ecosystem: bundler
     directories:
@@ -29,10 +34,10 @@ updates:
       timezone: "Etc/UTC"
     allow:
       - dependency-type: all
-    groups:
-      bundler:
-        patterns:
-          - "*"
+    cooldown:
+      semver-major-days: 14
+      semver-minor-days: 7
+      semver-patch-days: 1
 
   - package-ecosystem: npm
     directory: /
@@ -43,10 +48,10 @@ updates:
       timezone: "Etc/UTC"
     allow:
       - dependency-type: all
-    groups:
-      npm:
-        patterns:
-          - "*"
+    cooldown:
+      semver-major-days: 14
+      semver-minor-days: 7
+      semver-patch-days: 1
 
   - package-ecosystem: docker
     directory: /
@@ -57,10 +62,10 @@ updates:
       timezone: "Etc/UTC"
     allow:
       - dependency-type: all
-    groups:
-      docker:
-        patterns:
-          - "*"
+    cooldown:
+      semver-major-days: 14
+      semver-minor-days: 7
+      semver-patch-days: 1
 
   - package-ecosystem: devcontainers
     directory: /
@@ -71,10 +76,10 @@ updates:
       timezone: "Etc/UTC"
     allow:
       - dependency-type: all
-    groups:
-      devcontainers:
-        patterns:
-          - "*"
+    cooldown:
+      semver-major-days: 14
+      semver-minor-days: 7
+      semver-patch-days: 1
 
   - package-ecosystem: pip
     directories:
@@ -87,7 +92,7 @@ updates:
       timezone: "Etc/UTC"
     allow:
       - dependency-type: all
-    groups:
-      pip:
-        patterns:
-          - "*"
+    cooldown:
+      semver-major-days: 14
+      semver-minor-days: 7
+      semver-patch-days: 1
