@@ -249,8 +249,10 @@ end
 
 # Update Gemfile.lock if it exists, based on the Ruby version.
 #
+# We don't need to sync Gemfiles in Homebrew/brew because they are the source of truth.
 # We don't have Homebrew exclude? method here.
-unless custom_ruby_version_repos.include?(repository_name)
+# rubocop:disable Homebrew/NegateInclude
+if !custom_ruby_version_repos.include?(repository_name) && repository_name != "brew"
   target_gemfile_locks.each do |target_gemfile_lock|
     target_directory_path = target_gemfile_lock.dirname
     Dir.chdir target_directory_path do
@@ -263,6 +265,7 @@ unless custom_ruby_version_repos.include?(repository_name)
     end
   end
 end
+# rubocop:enable Homebrew/NegateInclude
 
 out, err, status = Open3.capture3("git", "-C", target_directory, "status", "--porcelain", "--ignore-submodules=dirty")
 raise err unless status.success?
