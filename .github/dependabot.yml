@@ -1,122 +1,22 @@
-# This file is used as a base for all other repositories in the Homebrew GitHub
-# organisation so intentionally contains package-ecosystems that do not apply to
-# this repository. They will be stripped out if unneeded by the sync action.
+# This file is synced from the `.github` repository, do not modify it directly.
+---
 version: 2
-
 updates:
-  - package-ecosystem: github-actions
-    directory: /
-    schedule:
-      interval: weekly
-      day: "monday"
-      time: "08:00"
-      timezone: "Etc/UTC"
-    allow:
-      - dependency-type: all
-    groups:
-      dependabot:
-        patterns:
-          - "*"
-    cooldown:
-      default-days: 1
-      include:
-        - "*"
+- package-ecosystem: github-actions
+  directory: "/"
+  schedule:
+    interval: weekly
+    day: friday
+    time: '08:00'
+    timezone: Etc/UTC
+  allow:
+  - dependency-type: all
+  groups:
+    dependabot:
+      patterns:
+      - "*"
+  cooldown:
+    default-days: 1
+    include:
+    - "*"
 
-  - package-ecosystem: bundler
-    directories:
-      - /
-      - /Library/Homebrew
-    schedule:
-      interval: weekly
-      day: "monday"
-      time: "08:00"
-      timezone: "Etc/UTC"
-    allow:
-      - dependency-type: all
-    groups:
-      dependabot:
-        patterns:
-          - "*"
-    cooldown:
-      default-days: 1
-      semver-major-days: 14
-      semver-minor-days: 7
-      semver-patch-days: 1
-      include:
-        - "*"
-
-  - package-ecosystem: npm
-    directory: /
-    schedule:
-      interval: weekly
-      day: "monday"
-      time: "08:00"
-      timezone: "Etc/UTC"
-    allow:
-      - dependency-type: all
-    groups:
-      dependabot:
-        patterns:
-          - "*"
-    cooldown:
-      default-days: 1
-      semver-major-days: 14
-      semver-minor-days: 7
-      semver-patch-days: 1
-      include:
-        - "*"
-
-  - package-ecosystem: docker
-    directory: /
-    schedule:
-      interval: weekly
-      day: "monday"
-      time: "08:00"
-      timezone: "Etc/UTC"
-    allow:
-      - dependency-type: all
-    groups:
-      dependabot:
-        patterns:
-          - "*"
-
-  - package-ecosystem: devcontainers
-    directory: /
-    schedule:
-      interval: weekly
-      day: "monday"
-      time: "08:00"
-      timezone: "Etc/UTC"
-    allow:
-      - dependency-type: all
-    groups:
-      dependabot:
-        patterns:
-          - "*"
-    cooldown:
-      default-days: 1
-      include:
-        - "*"
-
-  - package-ecosystem: pip
-    directories:
-      - /
-      - /Library/Homebrew/formula-analytics/
-    schedule:
-      interval: weekly
-      day: "monday"
-      time: "08:00"
-      timezone: "Etc/UTC"
-    allow:
-      - dependency-type: all
-    groups:
-      dependabot:
-        patterns:
-          - "*"
-    cooldown:
-      default-days: 1
-      semver-major-days: 14
-      semver-minor-days: 7
-      semver-patch-days: 1
-      include:
-        - "*"

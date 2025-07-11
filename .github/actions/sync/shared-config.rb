@@ -28,14 +28,13 @@ docs = "docs"
 ruby_version = ".ruby-version"
 rubocop_yaml = ".rubocop.yml"
 vale_ini = ".vale.ini"
+dependabot_template_yaml = ".github/actions/sync/dependabot.template.yml"
 dependabot_yaml = ".github/dependabot.yml"
 docs_workflow_yaml = ".github/workflows/docs.yml"
 actionlint_workflow_yaml = ".github/workflows/actionlint.yml"
 stale_issues_workflow_yaml = ".github/workflows/stale-issues.yml"
 zizmor_yml = ".github/zizmor.yml"
 codeql_extensions_homebrew_actions_yml = ".github/codeql/extensions/homebrew-actions.yml"
-
-target_gemfile_lock = target_directory_path/"Gemfile.lock"
 
 homebrew_docs = homebrew_repository_path/docs
 homebrew_ruby_version =
@@ -63,19 +62,37 @@ end.to_yaml
 homebrew_docs_workflow_yaml = homebrew_repository_path/docs_workflow_yaml
 homebrew_vale_ini = homebrew_repository_path/vale_ini
 
-dependabot_config_yaml = YAML.load_file(dependabot_yaml)
+target_gemfile_locks = []
+dependabot_config_yaml = YAML.load_file(dependabot_template_yaml)
 dependabot_config_yaml["updates"] = dependabot_config_yaml["updates"].filter_map do |update|
-  keep_update = case update["package-ecosystem"]
+  bundler_ecosystem = false
+  ecosystem_file = case update["package-ecosystem"]
   when "bundler"
-    target_gemfile_lock.exist?
+    bundler_ecosystem = true
+    "Gemfile.lock"
   when "npm"
-    (target_directory_path/"package.json").exist?
+    "package.json"
   when "docker"
-    (target_directory_path/"Dockerfile").exist?
+    "Dockerfile"
   when "devcontainers"
-    (target_directory_path/".devcontainer/devcontainer.json").exist?
+    ".devcontainer/devcontainer.json"
   when "pip"
-    (target_directory_path/"requirements.txt").exist?
+    "requirements.txt"
+  end
+
+  keep_update = if ecosystem_file && (update_directories = update["directories"])
+    update_directories.select! do |directory|
+      ecosystem_file_path = (target_directory_path/".#{directory}/#{ecosystem_file}")
+      next unless ecosystem_file_path.exist?
+
+      target_gemfile_locks << ecosystem_file_path if bundler_ecosystem
+
+      true
+    end
+    update["directories"] = update_directories
+    update_directories.any?
+  elsif (update_directory = update.fetch("directory"))
+    (target_directory_path/".#{update_directory}/#{ecosystem_file}").exist?
   else
     true
   end
@@ -161,7 +178,7 @@ puts "Detecting changes…"
           "# This file is synced from `Homebrew/brew` by the `.github` repository, do not modify it directly.\n" \
           "#{homebrew_docs_rubocop_config}\n",
         )
-      else
+      elsif docs_path != target_docs_path
         FileUtils.cp docs_path, target_docs_path
       end
     end
@@ -202,14 +219,14 @@ puts "Detecting changes…"
     )
   when dependabot_yaml, actionlint_workflow_yaml, stale_issues_workflow_yaml,
        zizmor_yml, codeql_extensions_homebrew_actions_yml
-    next if path == target_path.to_s
-
-    # ensure we don't replace the template files in this repository
-    next if repository_name == ".github"
-
     contents = if path == dependabot_yaml
       dependabot_config
     else
+      next if path == target_path.to_s
+
+      # ensure we don't replace the non-dependabot template files in this repository
+      next if repository_name == ".github"
+
       Pathname(path).read
                     .chomp
     end
@@ -233,18 +250,19 @@ end
 # Update Gemfile.lock if it exists, based on the Ruby version.
 #
 # We don't have Homebrew exclude? method here.
-# rubocop:disable Homebrew/NegateInclude
-if !custom_ruby_version_repos.include?(repository_name) && target_gemfile_lock.exist?
-  Dir.chdir target_directory_path do
-    require "bundler"
-    bundler_version = Bundler::Definition.build(homebrew_gemfile, homebrew_gemfile_lock, false)
-                                         .locked_gems
-                                         .bundler_version
-    puts "Running bundle update (with Bundler #{bundler_version})..."
-    system "bundle", "update", "--ruby", "--bundler=#{bundler_version}", "--quiet", out: "/dev/null"
+unless custom_ruby_version_repos.include?(repository_name)
+  target_gemfile_locks.each do |target_gemfile_lock|
+    target_directory_path = target_gemfile_lock.dirname
+    Dir.chdir target_directory_path do
+      require "bundler"
+      bundler_version = Bundler::Definition.build(homebrew_gemfile, homebrew_gemfile_lock, false)
+                                           .locked_gems
+                                           .bundler_version
+      puts "Running bundle update (with Bundler #{bundler_version})..."
+      system "bundle", "update", "--ruby", "--bundler=#{bundler_version}", "--quiet", out: "/dev/null"
+    end
   end
 end
-# rubocop:enable Homebrew/NegateInclude
 
 out, err, status = Open3.capture3("git", "-C", target_directory, "status", "--porcelain", "--ignore-submodules=dirty")
 raise err unless status.success?
