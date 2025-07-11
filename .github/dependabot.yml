@@ -18,9 +18,9 @@ updates:
         patterns:
           - "*"
     cooldown:
-      semver-major-days: 14
-      semver-minor-days: 7
-      semver-patch-days: 1
+      default-days: 1
+      include:
+        - "*"
 
   - package-ecosystem: bundler
     directories:
@@ -38,9 +38,12 @@ updates:
         patterns:
           - "*"
     cooldown:
+      default-days: 1
       semver-major-days: 14
       semver-minor-days: 7
       semver-patch-days: 1
+      include:
+        - "*"
 
   - package-ecosystem: npm
     directory: /
@@ -56,9 +59,12 @@ updates:
         patterns:
           - "*"
     cooldown:
+      default-days: 1
       semver-major-days: 14
       semver-minor-days: 7
       semver-patch-days: 1
+      include:
+        - "*"
 
   - package-ecosystem: docker
     directory: /
@@ -73,10 +79,6 @@ updates:
       dependabot:
         patterns:
           - "*"
-    cooldown:
-      semver-major-days: 14
-      semver-minor-days: 7
-      semver-patch-days: 1
 
   - package-ecosystem: devcontainers
     directory: /
@@ -92,9 +94,12 @@ updates:
         patterns:
           - "*"
     cooldown:
+      default-days: 1
       semver-major-days: 14
       semver-minor-days: 7
       semver-patch-days: 1
+      include:
+        - "*"
 
   - package-ecosystem: pip
     directories:
@@ -112,6 +117,9 @@ updates:
         patterns:
           - "*"
     cooldown:
+      default-days: 1
       semver-major-days: 14
       semver-minor-days: 7
       semver-patch-days: 1
+      include:
+        - "*"
