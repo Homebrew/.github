@@ -11,8 +11,6 @@ on:
       - 'Formula/s/shellcheck.rb'
       - 'Formula/z/zizmor.rb'
   pull_request:
-    paths:
-      - '.github/workflows/*.ya?ml'
 
 defaults:
   run:
