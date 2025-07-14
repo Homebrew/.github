@@ -64,6 +64,11 @@ homebrew_vale_ini = homebrew_repository_path/vale_ini
 
 target_gemfile_locks = []
 dependabot_config_yaml = YAML.load_file(dependabot_template_yaml)
+# This should be run after dependabot.yml for this repository (Monday)
+# and after the sync-shared-config job for synced repositories (Wednesday).
+# This maximises the chance of a single sync per week handling both any
+# changes and any dependabot updates.
+dependabot_config_yaml["multi-ecosystem-groups"]["all"]["schedule"]["day"] = "friday"
 dependabot_config_yaml["updates"] = dependabot_config_yaml["updates"].filter_map do |update|
   bundler_ecosystem = false
   ecosystem_file = case update["package-ecosystem"]
@@ -97,12 +102,6 @@ dependabot_config_yaml["updates"] = dependabot_config_yaml["updates"].filter_map
     true
   end
   next unless keep_update
-
-  # This should be run after dependabot.yml for this repository (Monday)
-  # and after the sync-shared-config job for synced repositories (Wednesday).
-  # This maximises the chance of a single sync per week handling both any
-  # changes and any dependabot updates.
-  update["schedule"]["day"] = "friday"
 
   update
 end
