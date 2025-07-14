@@ -2,20 +2,21 @@
 # organisation so intentionally contains a superset of all required attributes.
 version: 2
 
-updates:
-  - package-ecosystem: github-actions
-    directory: /
+multi-ecosystem-groups:
+  all:
     schedule:
       interval: weekly
       day: "monday"
       time: "08:00"
       timezone: "Etc/UTC"
+
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    multi-ecosystem-group: "all"
+    patterns: ["*"]
     allow:
       - dependency-type: all
-    groups:
-      dependabot:
-        patterns:
-          - "*"
     cooldown:
       default-days: 1
       include:
@@ -25,17 +26,10 @@ updates:
     directories:
       - /
       - /Library/Homebrew
-    schedule:
-      interval: weekly
-      day: "monday"
-      time: "08:00"
-      timezone: "Etc/UTC"
+    multi-ecosystem-group: "all"
+    patterns: ["*"]
     allow:
       - dependency-type: all
-    groups:
-      dependabot:
-        patterns:
-          - "*"
     cooldown:
       default-days: 1
       semver-major-days: 14
@@ -46,17 +40,10 @@ updates:
 
   - package-ecosystem: npm
     directory: /
-    schedule:
-      interval: weekly
-      day: "monday"
-      time: "08:00"
-      timezone: "Etc/UTC"
+    multi-ecosystem-group: "all"
+    patterns: ["*"]
     allow:
       - dependency-type: all
-    groups:
-      dependabot:
-        patterns:
-          - "*"
     cooldown:
       default-days: 1
       semver-major-days: 14
@@ -67,31 +54,17 @@ updates:
 
   - package-ecosystem: docker
     directory: /
-    schedule:
-      interval: weekly
-      day: "monday"
-      time: "08:00"
-      timezone: "Etc/UTC"
+    multi-ecosystem-group: "all"
+    patterns: ["*"]
     allow:
       - dependency-type: all
-    groups:
-      dependabot:
-        patterns:
-          - "*"
 
   - package-ecosystem: devcontainers
     directory: /
-    schedule:
-      interval: weekly
-      day: "monday"
-      time: "08:00"
-      timezone: "Etc/UTC"
+    multi-ecosystem-group: "all"
+    patterns: ["*"]
     allow:
       - dependency-type: all
-    groups:
-      dependabot:
-        patterns:
-          - "*"
     cooldown:
       default-days: 1
       include:
@@ -101,17 +74,10 @@ updates:
     directories:
       - /
       - /Library/Homebrew/formula-analytics/
-    schedule:
-      interval: weekly
-      day: "monday"
-      time: "08:00"
-      timezone: "Etc/UTC"
+    multi-ecosystem-group: "all"
+    patterns: ["*"]
     allow:
       - dependency-type: all
-    groups:
-      dependabot:
-        patterns:
-          - "*"
     cooldown:
       default-days: 1
       semver-major-days: 14
