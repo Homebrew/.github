@@ -52,10 +52,11 @@ jobs:
             Homebrew/homebrew-portable-ruby
             Homebrew/homebrew-test-bot
             Homebrew/install
-            Homebrew/ruby-macho
-            Homebrew/rubydoc.brew.sh
             Homebrew/mass-bottling-tracker-private
             Homebrew/private
+            Homebrew/ruby-macho
+            Homebrew/rubydoc.brew.sh
+            Homebrew/user-management
           )
           if [[ "${SKIP_PRIVATE}" == true ]]; then
             read -r -a repositories <<< "${repositories[@]//*private}"
