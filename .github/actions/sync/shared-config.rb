@@ -83,6 +83,8 @@ dependabot_config_yaml["updates"] = dependabot_config_yaml["updates"].filter_map
     "package.json"
   when "pip"
     "requirements.txt"
+  when "terraform"
+    ".terraform.lock.hcl"
   end
 
   keep_update = if ecosystem_file && (update_directories = update["directories"])
