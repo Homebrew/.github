@@ -75,14 +75,16 @@ dependabot_config_yaml["updates"] = dependabot_config_yaml["updates"].filter_map
   when "bundler"
     bundler_ecosystem = true
     "Gemfile.lock"
-  when "npm"
-    "package.json"
-  when "docker"
-    "Dockerfile"
   when "devcontainers"
     ".devcontainer/devcontainer.json"
+  when "docker"
+    "Dockerfile"
+  when "npm"
+    "package.json"
   when "pip"
     "requirements.txt"
+  when "terraform"
+    ".terraform.lock.hcl"
   end
 
   keep_update = if ecosystem_file && (update_directories = update["directories"])
