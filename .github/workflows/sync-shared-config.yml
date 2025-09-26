@@ -47,10 +47,8 @@ jobs:
             Homebrew/formulae.brew.sh
             Homebrew/glibc-bootstrap
             Homebrew/homebrew-cask
-            Homebrew/homebrew-command-not-found
             Homebrew/homebrew-core
             Homebrew/homebrew-portable-ruby
-            Homebrew/homebrew-test-bot
             Homebrew/install
             Homebrew/mass-bottling-tracker-private
             Homebrew/private
