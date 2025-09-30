@@ -48,7 +48,6 @@ jobs:
             Homebrew/glibc-bootstrap
             Homebrew/homebrew-cask
             Homebrew/homebrew-core
-            Homebrew/homebrew-portable-ruby
             Homebrew/install
             Homebrew/mass-bottling-tracker-private
             Homebrew/private
