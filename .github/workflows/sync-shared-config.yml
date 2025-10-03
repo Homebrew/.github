@@ -49,7 +49,6 @@ jobs:
             Homebrew/homebrew-cask
             Homebrew/homebrew-core
             Homebrew/install
-            Homebrew/mass-bottling-tracker-private
             Homebrew/private
             Homebrew/ruby-macho
             Homebrew/rubydoc.brew.sh

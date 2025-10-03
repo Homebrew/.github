@@ -110,12 +110,10 @@ end
 dependabot_config = dependabot_config_yaml.to_yaml
 
 custom_ruby_version_repos = %w[
-  mass-bottling-tracker-private
   ruby-macho
 ].freeze
 custom_rubocop_repos = %w[
   ci-orchestrator
-  mass-bottling-tracker-private
   ruby-macho
 ].freeze
 rejected_docs_basenames = %w[
