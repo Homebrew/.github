@@ -207,6 +207,13 @@ puts "Detecting changes…"
 
     target_path = target_directory_path/"Library/Homebrew/#{ruby_version}" if repository_name == "brew"
 
+    if target_path.exist?
+      target_ruby_version = target_path.read.chomp
+
+      # Don't downgrade the Ruby version even if Portable Ruby was downgraded.
+      next if Gem::Version.new(homebrew_ruby_version) < Gem::Version.new(target_ruby_version)
+    end
+
     target_path.write("#{homebrew_ruby_version}\n")
   when rubocop_yaml
     next if custom_rubocop_repos.include?(repository_name)
