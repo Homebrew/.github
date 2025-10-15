@@ -51,7 +51,6 @@ jobs:
             Homebrew/install
             Homebrew/private
             Homebrew/ruby-macho
-            Homebrew/rubydoc.brew.sh
             Homebrew/user-management
           )
           if [[ "${SKIP_PRIVATE}" == true ]]; then
