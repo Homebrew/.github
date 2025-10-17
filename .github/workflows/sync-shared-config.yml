@@ -41,7 +41,7 @@ jobs:
             Homebrew/brew
             Homebrew/brew-pip-audit
             Homebrew/brew.sh
-            Homebrew/ci-orchestrator
+            Homebrew/ci-orchestrator-private
             Homebrew/discussions
             Homebrew/formulae.brew.sh
             Homebrew/glibc-bootstrap
@@ -50,7 +50,6 @@ jobs:
             Homebrew/install
             Homebrew/private
             Homebrew/ruby-macho
-            Homebrew/user-management
           )
           if [[ "${SKIP_PRIVATE}" == true ]]; then
             read -r -a repositories <<< "${repositories[@]//*private}"
