@@ -41,7 +41,7 @@ jobs:
             Homebrew/brew
             Homebrew/brew-pip-audit
             Homebrew/brew.sh
-            Homebrew/ci-orchestrator
+            Homebrew/ci-orchestrator-private
             Homebrew/discussions
             Homebrew/formulae.brew.sh
             Homebrew/glibc-bootstrap
@@ -50,7 +50,6 @@ jobs:
             Homebrew/install
             Homebrew/private
             Homebrew/ruby-macho
-            Homebrew/user-management
           )
           if [[ "${SKIP_PRIVATE}" == true ]]; then
             read -r -a repositories <<< "${repositories[@]//*private}"
@@ -108,7 +107,7 @@ jobs:
         run: cp /home/linuxbrew/.linuxbrew/Homebrew/Library/Homebrew/.ruby-version .
 
       - name: Install Ruby
-        uses: ruby/setup-ruby@6797dcbb9a1889fd411d07e8aba7eded53fb8b48 # v1.264.0
+        uses: ruby/setup-ruby@ab177d40ee5483edb974554986f56b33477e21d0 # v1.265.0
         with:
           bundler-cache: true
 
