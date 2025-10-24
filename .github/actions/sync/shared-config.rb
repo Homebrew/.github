@@ -113,7 +113,7 @@ custom_ruby_version_repos = %w[
   ruby-macho
 ].freeze
 custom_rubocop_repos = %w[
-  ci-orchestrator
+  ci-orchestrator-private
   ruby-macho
 ].freeze
 rejected_docs_basenames = %w[
