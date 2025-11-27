@@ -19,6 +19,8 @@ updates:
     patterns: ["*"]
     allow:
       - dependency-type: all
+    cooldown:
+      default-days: 7
 
   - package-ecosystem: devcontainers
     directory: /
@@ -26,6 +28,8 @@ updates:
     patterns: ["*"]
     allow:
       - dependency-type: all
+    cooldown:
+      default-days: 7
 
   - package-ecosystem: docker
     directory: /
@@ -33,6 +37,8 @@ updates:
     patterns: ["*"]
     allow:
       - dependency-type: all
+    cooldown:
+      default-days: 7
 
   - package-ecosystem: github-actions
     directory: /
@@ -40,6 +46,8 @@ updates:
     patterns: ["*"]
     allow:
       - dependency-type: all
+    cooldown:
+      default-days: 7
 
   - package-ecosystem: npm
     directory: /
@@ -47,6 +55,8 @@ updates:
     patterns: ["*"]
     allow:
       - dependency-type: all
+    cooldown:
+      default-days: 7
 
   - package-ecosystem: pip
     directories:
@@ -56,6 +66,8 @@ updates:
     patterns: ["*"]
     allow:
       - dependency-type: all
+    cooldown:
+      default-days: 7
 
   - package-ecosystem: terraform
     directory: /
@@ -63,3 +75,5 @@ updates:
     patterns: ["*"]
     allow:
       - dependency-type: all
+    cooldown:
+      default-days: 7
