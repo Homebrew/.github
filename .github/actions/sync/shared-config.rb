@@ -68,7 +68,9 @@ dependabot_config_yaml = YAML.load_file(dependabot_template_yaml)
 # and after the sync-shared-config job for synced repositories (Wednesday).
 # This maximises the chance of a single sync per week handling both any
 # changes and any dependabot updates.
-dependabot_config_yaml["multi-ecosystem-groups"]["all"]["schedule"]["day"] = "friday"
+dependabot_config_yaml["updates"].each do |update|
+  update["schedule"]["day"] = "friday" if update["schedule"]
+end
 dependabot_config_yaml["updates"] = dependabot_config_yaml["updates"].filter_map do |update|
   bundler_ecosystem = false
   ecosystem_file = case update["package-ecosystem"]

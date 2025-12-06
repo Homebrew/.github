@@ -2,20 +2,16 @@
 # organisation so intentionally contains a superset of all required attributes.
 version: 2
 
-multi-ecosystem-groups:
-  all:
-    schedule:
-      interval: weekly
-      day: "monday"
-      time: "08:00"
-      timezone: "Etc/UTC"
-
 updates:
   - package-ecosystem: bundler
     directories:
       - /
       - /Library/Homebrew
-    multi-ecosystem-group: "all"
+    schedule:
+      interval: weekly
+      day: "monday"
+      time: "08:00"
+      timezone: "Etc/UTC"
     patterns: ["*"]
     allow:
       - dependency-type: all
@@ -24,7 +20,11 @@ updates:
 
   - package-ecosystem: devcontainers
     directory: /
-    multi-ecosystem-group: "all"
+    schedule:
+      interval: weekly
+      day: "monday"
+      time: "08:00"
+      timezone: "Etc/UTC"
     patterns: ["*"]
     allow:
       - dependency-type: all
@@ -33,7 +33,11 @@ updates:
 
   - package-ecosystem: docker
     directory: /
-    multi-ecosystem-group: "all"
+    schedule:
+      interval: weekly
+      day: "monday"
+      time: "08:00"
+      timezone: "Etc/UTC"
     patterns: ["*"]
     allow:
       - dependency-type: all
@@ -42,7 +46,11 @@ updates:
 
   - package-ecosystem: github-actions
     directory: /
-    multi-ecosystem-group: "all"
+    schedule:
+      interval: weekly
+      day: "monday"
+      time: "08:00"
+      timezone: "Etc/UTC"
     patterns: ["*"]
     allow:
       - dependency-type: all
@@ -51,7 +59,11 @@ updates:
 
   - package-ecosystem: npm
     directory: /
-    multi-ecosystem-group: "all"
+    schedule:
+      interval: weekly
+      day: "monday"
+      time: "08:00"
+      timezone: "Etc/UTC"
     patterns: ["*"]
     allow:
       - dependency-type: all
@@ -62,7 +74,11 @@ updates:
     directories:
       - /
       - /Library/Homebrew/formula-analytics/
-    multi-ecosystem-group: "all"
+    schedule:
+      interval: weekly
+      day: "monday"
+      time: "08:00"
+      timezone: "Etc/UTC"
     patterns: ["*"]
     allow:
       - dependency-type: all
@@ -71,7 +87,11 @@ updates:
 
   - package-ecosystem: terraform
     directory: /
-    multi-ecosystem-group: "all"
+    schedule:
+      interval: weekly
+      day: "monday"
+      time: "08:00"
+      timezone: "Etc/UTC"
     patterns: ["*"]
     allow:
       - dependency-type: all
