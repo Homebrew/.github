@@ -12,7 +12,9 @@ updates:
       day: "monday"
       time: "08:00"
       timezone: "Etc/UTC"
-    patterns: ["*"]
+    groups:
+      bundler:
+        patterns: ["*"]
     allow:
       - dependency-type: all
     cooldown:
@@ -25,7 +27,9 @@ updates:
       day: "monday"
       time: "08:00"
       timezone: "Etc/UTC"
-    patterns: ["*"]
+    groups:
+      devcontainers:
+        patterns: ["*"]
     allow:
       - dependency-type: all
     cooldown:
@@ -38,7 +42,9 @@ updates:
       day: "monday"
       time: "08:00"
       timezone: "Etc/UTC"
-    patterns: ["*"]
+    groups:
+      docker:
+        patterns: ["*"]
     allow:
       - dependency-type: all
     cooldown:
@@ -51,7 +57,9 @@ updates:
       day: "monday"
       time: "08:00"
       timezone: "Etc/UTC"
-    patterns: ["*"]
+    groups:
+      github-actions:
+        patterns: ["*"]
     allow:
       - dependency-type: all
     cooldown:
@@ -64,7 +72,9 @@ updates:
       day: "monday"
       time: "08:00"
       timezone: "Etc/UTC"
-    patterns: ["*"]
+    groups:
+      npm:
+        patterns: ["*"]
     allow:
       - dependency-type: all
     cooldown:
@@ -79,7 +89,9 @@ updates:
       day: "monday"
       time: "08:00"
       timezone: "Etc/UTC"
-    patterns: ["*"]
+    groups:
+      pip:
+        patterns: ["*"]
     allow:
       - dependency-type: all
     cooldown:
@@ -92,7 +104,9 @@ updates:
       day: "monday"
       time: "08:00"
       timezone: "Etc/UTC"
-    patterns: ["*"]
+    groups:
+      terraform:
+        patterns: ["*"]
     allow:
       - dependency-type: all
     cooldown:
