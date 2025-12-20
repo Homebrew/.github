@@ -26,7 +26,7 @@ concurrency:
 
 jobs:
   generate-matrix:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     outputs:
       matrix: ${{ steps.generate-matrix.outputs.matrix }}
     steps:
@@ -107,7 +107,7 @@ jobs:
         run: cp /home/linuxbrew/.linuxbrew/Homebrew/Library/Homebrew/.ruby-version .
 
       - name: Install Ruby
-        uses: ruby/setup-ruby@8aeb6ff8030dd539317f8e1769a044873b56ea71 # v1.268.0
+        uses: ruby/setup-ruby@f8d7259c7a66155a7c4a157a1a10ca601f186594 # v1.271.0
         with:
           bundler-cache: true
 
@@ -150,7 +150,7 @@ jobs:
           GH_TOKEN: ${{ secrets.HOMEBREW_DOTGITHUB_WORKFLOW_TOKEN }}
   conclusion:
     needs: sync
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     if: always()
     steps:
       - name: Result
