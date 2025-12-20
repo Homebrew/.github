@@ -26,7 +26,7 @@ concurrency:
 
 jobs:
   generate-matrix:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     outputs:
       matrix: ${{ steps.generate-matrix.outputs.matrix }}
     steps:
@@ -150,7 +150,7 @@ jobs:
           GH_TOKEN: ${{ secrets.HOMEBREW_DOTGITHUB_WORKFLOW_TOKEN }}
   conclusion:
     needs: sync
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     if: always()
     steps:
       - name: Result
