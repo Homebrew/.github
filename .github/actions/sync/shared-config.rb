@@ -85,7 +85,7 @@ dependabot_config_yaml["updates"] = dependabot_config_yaml["updates"].filter_map
     "package.json"
   when "pip"
     "requirements.txt"
-  when "terraform"
+  when "opentofu"
     ".terraform.lock.hcl"
   end
 
