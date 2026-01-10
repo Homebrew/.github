@@ -97,17 +97,19 @@ updates:
     cooldown:
       default-days: 7
 
-  - package-ecosystem: terraform
-    directory: /
+  - package-ecosystem: opentofu
+    directories:
+      - /user-management
+      - /infrastructure
     schedule:
       interval: weekly
       day: "monday"
       time: "08:00"
       timezone: "Etc/UTC"
     groups:
-      terraform:
+      opentofu:
         patterns: ["*"]
     allow:
       - dependency-type: all
-    cooldown:
-      default-days: 7
+    # cooldown:
+    #   default-days: 7
