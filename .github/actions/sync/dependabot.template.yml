@@ -1,5 +1,6 @@
 # This file is used as a base for all repositories in the Homebrew GitHub
 # organisation so intentionally contains a superset of all required attributes.
+# Please keep / present for all ecosystems
 version: 2
 
 updates:
@@ -99,6 +100,7 @@ updates:
 
   - package-ecosystem: opentofu
     directories:
+      - /
       - /user-management
       - /infrastructure
     schedule:
@@ -111,5 +113,8 @@ updates:
         patterns: ["*"]
     allow:
       - dependency-type: all
+    # Dependabot does not yet support cooldowns when updating OpenTofu.
+    # Re-enable when it does.
+    # https://github.com/dependabot/dependabot-core/issues/13922
     # cooldown:
     #   default-days: 7
