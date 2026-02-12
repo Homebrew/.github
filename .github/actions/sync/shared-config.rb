@@ -43,6 +43,8 @@ homebrew_ruby_version =
                                                                             .sub(/_\d+$/, "")
 homebrew_gemfile = (homebrew_repository_path/"Library/Homebrew/Gemfile")
 homebrew_gemfile_lock = (homebrew_repository_path/"Library/Homebrew/Gemfile.lock")
+homebrew_docs_gemfile = (homebrew_repository_path/"docs/Gemfile")
+homebrew_docs_gemfile_lock = (homebrew_repository_path/"docs/Gemfile.lock")
 homebrew_rubocop_config_yaml = YAML.load_file(
   homebrew_repository_path/"Library/#{rubocop_yaml}",
   permitted_classes: [Symbol, Regexp],
@@ -167,7 +169,7 @@ puts "Detecting changes…"
 
       target_docs_path.dirname.mkpath
 
-      if [ruby_version, "Gemfile", "Gemfile.lock"].include?(docs_path_basename) &&
+      if [ruby_version, "Gemfile"].include?(docs_path_basename) &&
          (target_path/docs_path_basename).exist?
         FileUtils.rm target_docs_path
         Dir.chdir target_path do
@@ -265,9 +267,12 @@ if !custom_ruby_version_repos.include?(repository_name) && repository_name != "b
     target_directory_path = target_gemfile_lock.dirname
     Dir.chdir target_directory_path do
       require "bundler"
-      bundler_version = Bundler::Definition.build(homebrew_gemfile, homebrew_gemfile_lock, false)
-                                           .locked_gems
-                                           .bundler_version
+      is_docs_lock = target_gemfile_lock.dirname.basename.to_s == docs
+      bundler_version = Bundler::Definition.build(
+        is_docs_lock ? homebrew_docs_gemfile : homebrew_gemfile,
+        is_docs_lock ? homebrew_docs_gemfile_lock : homebrew_gemfile_lock,
+        false,
+      ).locked_gems.bundler_version
       puts "Running bundle update (with Bundler #{bundler_version})..."
       system "bundle", "update", "--ruby", "--bundler=#{bundler_version}", "--quiet", out: "/dev/null"
     end
