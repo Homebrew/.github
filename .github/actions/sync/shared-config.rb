@@ -113,9 +113,6 @@ dependabot_config_yaml["updates"] = dependabot_config_yaml["updates"].filter_map
 end
 dependabot_config = dependabot_config_yaml.to_yaml
 
-custom_ruby_version_repos = %w[
-  ruby-macho
-].freeze
 custom_rubocop_repos = %w[
   ci-orchestrator-private
   ruby-macho
@@ -207,8 +204,6 @@ puts "Detecting changes…"
       "#{contents}\n",
     )
   when ruby_version
-    next if custom_ruby_version_repos.include?(repository_name)
-
     target_path = target_directory_path/"Library/Homebrew/#{ruby_version}" if repository_name == "brew"
 
     if target_path.exist?
@@ -260,9 +255,7 @@ end
 # Update Gemfile.lock if it exists, based on the Ruby version.
 #
 # We don't need to sync Gemfiles in Homebrew/brew because they are the source of truth.
-# We don't have Homebrew exclude? method here.
-# rubocop:disable Homebrew/NegateInclude
-if !custom_ruby_version_repos.include?(repository_name) && repository_name != "brew"
+if repository_name != "brew"
   target_gemfile_locks.each do |target_gemfile_lock|
     target_directory_path = target_gemfile_lock.dirname
     Dir.chdir target_directory_path do
@@ -278,7 +271,6 @@ if !custom_ruby_version_repos.include?(repository_name) && repository_name != "b
     end
   end
 end
-# rubocop:enable Homebrew/NegateInclude
 
 out, err, status = Open3.capture3("git", "-C", target_directory, "status", "--porcelain", "--ignore-submodules=dirty")
 raise err unless status.success?

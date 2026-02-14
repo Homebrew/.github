@@ -45,12 +45,12 @@ jobs:
             Homebrew/discussions
             Homebrew/formulae.brew.sh
             Homebrew/glibc-bootstrap
+            Homebrew/homebrew-brew-vulns
             Homebrew/homebrew-cask
             Homebrew/homebrew-core
             Homebrew/install
             Homebrew/private
             Homebrew/ruby-macho
-            Homebrew/homebrew-brew-vulns
           )
           if [[ "${SKIP_PRIVATE}" == true ]]; then
             read -r -a repositories <<< "${repositories[@]//*private}"
