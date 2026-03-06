@@ -39,8 +39,8 @@ codeql_extensions_homebrew_actions_yml = ".github/codeql/extensions/homebrew-act
 homebrew_docs = homebrew_repository_path/docs
 homebrew_ruby_version =
   (homebrew_repository_path/"Library/Homebrew/vendor/portable-ruby-version").read
-                                                                            .chomp
-                                                                            .sub(/_\d+$/, "")
+  .chomp
+  .sub(/_\d+$/, "")
 homebrew_gemfile = (homebrew_repository_path/"Library/Homebrew/Gemfile")
 homebrew_gemfile_lock = (homebrew_repository_path/"Library/Homebrew/Gemfile.lock")
 homebrew_docs_gemfile = (homebrew_repository_path/"docs/Gemfile")
