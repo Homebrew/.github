@@ -75,7 +75,8 @@ dependabot_config_yaml["updates"].each do |update|
 end
 dependabot_config_yaml["updates"] = dependabot_config_yaml["updates"].filter_map do |update|
   bundler_ecosystem = false
-  ecosystem_file = case update["package-ecosystem"]
+  package_ecosystem = update["package-ecosystem"]
+  ecosystem_file = case package_ecosystem
   when "bundler"
     bundler_ecosystem = true
     "Gemfile.lock"
@@ -91,8 +92,10 @@ dependabot_config_yaml["updates"] = dependabot_config_yaml["updates"].filter_map
     ".terraform.lock.hcl"
   end
 
-  keep_update = if ecosystem_file && (update_directories = update["directories"])
+  keep_update = if (update_directories = update["directories"])
     update_directories.select! do |directory|
+      next package_ecosystem == "github-actions" && repository_name == "actions" if directory == "/*"
+
       ecosystem_file_path = (target_directory_path/".#{directory}/#{ecosystem_file}")
       next unless ecosystem_file_path.exist?
 
