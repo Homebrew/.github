@@ -80,6 +80,8 @@ dependabot_config_yaml["updates"] = dependabot_config_yaml["updates"].filter_map
   when "bundler"
     bundler_ecosystem = true
     "Gemfile.lock"
+  when "cargo"
+    "Cargo.toml"
   when "devcontainers"
     ".devcontainer/devcontainer.json"
   when "docker"
