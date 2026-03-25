@@ -3,8 +3,8 @@
 
 require "English"
 require "fileutils"
+require "find"
 require "open3"
-require "pathname"
 require "yaml"
 
 # This makes sense for a standalone script.
@@ -122,7 +122,6 @@ custom_ruby_version_repos = %w[
   ruby-macho
 ].freeze
 custom_rubocop_repos = %w[
-  ci-orchestrator-private
   ruby-macho
 ].freeze
 rejected_docs_basenames = %w[
@@ -160,7 +159,8 @@ puts "Detecting changes…"
     next unless target_path.exist?
     next unless target_path.directory?
 
-    homebrew_docs.find do |docs_path|
+    Find.find(homebrew_docs.to_s) do |docs_path|
+      docs_path = Pathname(docs_path)
       docs_path_basename = docs_path.basename.to_s
       next Find.prune if docs_path_basename == "vendor"
       next if docs_path.directory?
