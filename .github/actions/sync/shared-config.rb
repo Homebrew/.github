@@ -43,8 +43,6 @@ homebrew_ruby_version =
   .sub(/_\d+$/, "")
 homebrew_gemfile = (homebrew_repository_path/"Library/Homebrew/Gemfile")
 homebrew_gemfile_lock = (homebrew_repository_path/"Library/Homebrew/Gemfile.lock")
-homebrew_docs_gemfile = (homebrew_repository_path/"docs/Gemfile")
-homebrew_docs_gemfile_lock = (homebrew_repository_path/"docs/Gemfile.lock")
 homebrew_rubocop_config_yaml = YAML.load_file(
   homebrew_repository_path/"Library/#{rubocop_yaml}",
   permitted_classes: [Symbol, Regexp],
@@ -265,18 +263,20 @@ end
 
 # Update Gemfile.lock if it exists, based on the Ruby version.
 #
-# We don't need to sync Gemfiles in Homebrew/brew because they are the source of truth.
-# We don't have Homebrew exclude? method here.
-# rubocop:disable Homebrew/NegateInclude
-if !custom_ruby_version_repos.include?(repository_name) && repository_name != "brew"
+# We don't need to sync non-docs Gemfiles in Homebrew/brew because they are the source of truth.
+unless custom_ruby_version_repos.include?(repository_name)
   target_gemfile_locks.each do |target_gemfile_lock|
+    is_docs_lock = target_gemfile_lock.dirname.basename.to_s == docs
+
+    # Skip non-docs Gemfile.lock for brew since it's the source of truth.
+    next if repository_name == "brew" && !is_docs_lock
+
     target_directory_path = target_gemfile_lock.dirname
     Dir.chdir target_directory_path do
       require "bundler"
-      is_docs_lock = target_gemfile_lock.dirname.basename.to_s == docs
       bundler_version = Bundler::Definition.build(
-        is_docs_lock ? homebrew_docs_gemfile : homebrew_gemfile,
-        is_docs_lock ? homebrew_docs_gemfile_lock : homebrew_gemfile_lock,
+        homebrew_gemfile,
+        homebrew_gemfile_lock,
         false,
       ).locked_gems.bundler_version
       puts "Running bundle update (with Bundler #{bundler_version})..."
@@ -284,7 +284,6 @@ if !custom_ruby_version_repos.include?(repository_name) && repository_name != "b
     end
   end
 end
-# rubocop:enable Homebrew/NegateInclude
 
 out, err, status = Open3.capture3("git", "-C", target_directory, "status", "--porcelain", "--ignore-submodules=dirty")
 raise err unless status.success?
