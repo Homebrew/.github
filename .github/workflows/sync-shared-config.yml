@@ -51,6 +51,7 @@ jobs:
             Homebrew/private
             Homebrew/ruby-macho
             Homebrew/homebrew-brew-vulns
+            Homebrew/brew-rs-private
           )
           if [[ "${SKIP_PRIVATE}" == true ]]; then
             read -r -a repositories <<< "${repositories[@]//*private}"
