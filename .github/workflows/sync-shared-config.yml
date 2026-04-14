@@ -53,6 +53,7 @@ jobs:
             Homebrew/homebrew-brew-vulns
             Homebrew/brew-rs-private
             Homebrew/BrewUI
+            Homebrew/patchelf.rb
           )
           if [[ "${SKIP_PRIVATE}" == true ]]; then
             read -r -a repositories <<< "${repositories[@]//*private}"
