@@ -71,6 +71,8 @@ jobs:
       - name: Set up Homebrew
         id: set-up-homebrew
         uses: Homebrew/actions/setup-homebrew@main
+        with:
+          stable: false
 
       - name: Set up Homebrew portable Ruby
         uses: Homebrew/actions/setup-ruby@main
