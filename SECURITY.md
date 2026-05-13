@@ -40,7 +40,7 @@ Homebrew's boundary for upstream software is the `brew`-managed install, post-in
 The following sites and applications are within scope for this program:
 
 - The `brew` package manager (Homebrew/brew)
-- The Homebrew/homebrew-* official taps
+- The Homebrew/homebrew-core and Homebrew/homebrew-cask official taps
 - Homebrew-run infrastructure, including MacStadium workers and Homebrew-operated software running in cloud providers
 
 Examples of in-scope security issues include:
