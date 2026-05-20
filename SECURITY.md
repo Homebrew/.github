@@ -106,3 +106,4 @@ While researching, we ask you to refrain from:
 - Social engineering (including phishing) of Homebrew maintainers or contributors
 - Any physical attempts against Homebrew's machines
 - Performing vulnerability research in public, such as testing discoveries by opening pull requests to Homebrew's public repositories without prior written approval
+@ pathum2583-eng 
