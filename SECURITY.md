@@ -69,6 +69,16 @@ A bug that depends on using an untrusted tap, mirror, wrapper, fork, checkout or
 
 Malware, unwanted behaviour, vulnerable upstream releases, malicious install scripts, vulnerable casks or dangerous upstream build systems are not Homebrew security issues by themselves. Homebrew packages third-party software selected by users; removal or metadata changes for problematic packages should be handled in public issues or pull requests.
 
+### Antivirus and VirusTotal Detections
+
+Reports based only on third-party scanner output, such as VirusTotal, Intego, ClamAV or other antivirus detections on a Homebrew-installed file, are not Homebrew security issues by themselves. File hashes and scanner result permalinks help identify the sample, but they are not sufficient evidence that it is malware. Reports need independent verification that the file is malicious and that a Homebrew-maintained security boundary was violated. To date, every Homebrew report based only on third-party antivirus detections of installed files has been a false positive. Reports from Apple's built-in macOS malware protection should be filed with Apple. We may also act on such reports if shared with Homebrew, since the signal comes from Apple itself and we have not seen false positives from it to date.
+
+Useful supporting evidence may include reverse engineering showing malicious code or behaviour, observed malicious runtime behaviour such as network exfiltration or persistence and analysis tying the issue to Homebrew-maintained code, metadata, bottles, release infrastructure or checksum verification. Reports are not useful when they only name a detected malware family, repeat a generic malware description or use `brew install` plus a scan as the proof of concept.
+
+### Malicious Search Advertisements
+
+Malicious search results, sponsored links, advertisements or lookalike websites that impersonate Homebrew are not Homebrew security issues unless Homebrew-maintained infrastructure or domains are compromised. We are aware that Google sells malicious search result advertisements targeting Homebrew search terms. Homebrew does not purchase advertising; any sponsored result claiming to be Homebrew is fraudulent by definition. Homebrew cannot control or remove advertisements sold by Google or other advertising platforms. Report malicious advertisements to Google or the relevant advertising platform, not Homebrew.
+
 ### Software Not Written by Homebrew
 
 Security vulnerabilities in software used by but not written by Homebrew are not Homebrew security issues. Report these to the affected upstream project instead.
