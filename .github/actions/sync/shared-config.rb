@@ -15,14 +15,22 @@ def git(*args)
 end
 # rubocop:enable Style/TopLevelMethodDefinition
 
-target_directory = ARGV.fetch(0, "")
-target_directory_path = Pathname(target_directory)
-repository_name = target_directory_path.basename.to_s
-homebrew_repository_path = Pathname(ARGV.fetch(1, ""))
-
-if !target_directory_path.directory? || !homebrew_repository_path.directory? || ARGV[2]
-  abort "Usage: #{$PROGRAM_NAME} <target_directory_path> <homebrew_repository_path>"
+if ARGV[0].to_s.empty? || ARGV[1].to_s.empty? || ARGV[3]
+  abort "Usage: #{$PROGRAM_NAME} <target_directory_path> <homebrew_repository_path> [brewsh_repository_path]"
 end
+
+target_directory = ARGV.fetch(0)
+target_directory_path = Pathname(target_directory).expand_path
+repository_name = target_directory_path.basename.to_s
+homebrew_repository_path = Pathname(ARGV.fetch(1)).expand_path
+
+brewsh_repository = ARGV.fetch(2, "")
+brewsh_repository_path = Pathname(brewsh_repository).expand_path unless brewsh_repository.empty?
+
+if !target_directory_path.directory? || !homebrew_repository_path.directory?
+  abort "Usage: #{$PROGRAM_NAME} <target_directory_path> <homebrew_repository_path> [brewsh_repository_path]"
+end
+abort "#{brewsh_repository_path} is not a directory" if brewsh_repository_path && !brewsh_repository_path.directory?
 
 docs = "docs"
 ruby_version = ".ruby-version"
@@ -35,6 +43,14 @@ actionlint_workflow_yaml = ".github/workflows/actionlint.yml"
 stale_issues_workflow_yaml = ".github/workflows/stale-issues.yml"
 zizmor_yml = ".github/zizmor.yml"
 codeql_extensions_homebrew_actions_yml = ".github/codeql/extensions/homebrew-actions.yml"
+brewsh_theme_paths = %w[
+  _includes
+  _layouts
+  _sass
+  assets/css
+  assets/img
+  bin/jekyll
+].freeze
 
 homebrew_docs = homebrew_repository_path/docs
 homebrew_ruby_version =
@@ -168,6 +184,9 @@ puts "Detecting changes…"
       next if rejected_docs_basenames.include?(docs_path_basename)
 
       docs_path_subpath = docs_path.to_s.delete_prefix("#{homebrew_docs}/")
+      next if docs_path_subpath.start_with?("_includes/", "_layouts/", "_sass/", "assets/css/", "bin/jekyll")
+      next if docs_path_subpath.start_with?("assets/img/") && !docs_path_subpath.start_with?("assets/img/docs/")
+
       target_docs_path = target_path/docs_path_subpath
       next if docs_path.extname == ".png"
       next if docs_path.extname == ".md" && !target_docs_path.exist?
@@ -260,6 +279,49 @@ puts "Detecting changes…"
     next if path == target_path.to_s
 
     FileUtils.cp path, target_path
+  end
+end
+
+if brewsh_repository_path
+  theme_site_path = case repository_name
+  when "brew.sh", "formulae.brew.sh"
+    target_directory_path
+  else
+    target_docs_path = target_directory_path/docs
+    target_docs_path if target_docs_path.directory?
+  end
+
+  if theme_site_path
+    brewsh_theme_paths.each do |theme_path|
+      source_path = brewsh_repository_path/theme_path
+      next unless source_path.exist?
+
+      if source_path.directory?
+        Find.find(source_path.to_s) do |path|
+          path = Pathname(path)
+          if path.directory?
+            next Find.prune if theme_path == "assets/img" && path.basename.to_s == "blog"
+
+            next
+          end
+
+          relative_path = path.to_s.delete_prefix("#{source_path}/")
+          target_path = theme_site_path/theme_path/relative_path
+          next if path == target_path
+
+          target_path.dirname.mkpath
+          FileUtils.cp path, target_path
+          FileUtils.chmod path.stat.mode, target_path
+        end
+      else
+        target_path = theme_site_path/theme_path
+        next if source_path == target_path
+
+        target_path.dirname.mkpath
+        FileUtils.cp source_path, target_path
+        FileUtils.chmod source_path.stat.mode, target_path
+      end
+    end
   end
 end
 
