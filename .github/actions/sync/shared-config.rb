@@ -451,11 +451,16 @@ if brewsh_repository_path && repository_name != "brew.sh"
           "#{brewsh_assets_url}/assets/#{Regexp.last_match(1)}/#{Regexp.last_match(2)}"
         end
         unless has_posts
+          updated_contents = updated_contents
+                             .gsub("form-action 'self' https://buttondown.email;", "form-action 'self';")
+                             .gsub("The `jekyll-feed` and `jekyll-seo-tag` plugins use",
+                                   "The `jekyll-seo-tag` plugin uses")
+                             .gsub("control this behavior in the plugins,", "control this behavior in the plugin,")
           updated_contents = updated_contents.gsub(
             /
-              \n\s*\{% if site\.feed and site\.posts\.size > 0 -%\}
-              \n\s*\{% include feed\.html -%\}
-              \n\s*\{% endif -%\}
+              \n\s*\{%\s*if\s+site\.feed\s+and\s+site\.posts\.size\s*>\s*0\s*-?%\}
+              \n\s*\{%\s*include\s+feed\.html\s*-?%\}
+              \n\s*\{%\s*endif\s*-?%\}
             /x,
             "",
           )
