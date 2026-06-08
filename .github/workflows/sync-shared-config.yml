@@ -59,9 +59,37 @@ jobs:
             read -r -a repositories <<< "${repositories[@]//*private}"
           fi
           echo "matrix=$(jq -cn '$ARGS.positional' --args -- "${repositories[@]}")" >> "${GITHUB_OUTPUT}"
+  style:
+    if: github.repository == 'Homebrew/.github'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Homebrew
+        id: set-up-homebrew
+        uses: Homebrew/actions/setup-homebrew@main
+        with:
+          stable: false
+
+      - name: Set up Homebrew portable Ruby
+        uses: Homebrew/actions/setup-ruby@main
+        with:
+          portable-ruby: true
+
+      - name: Clone source repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - run: brew install-bundler-gems --groups=style
+        env:
+          HOMEBREW_DEVELOPER: 1
+
+      - run: brew style .github/actions/sync/*.rb
+        env:
+          HOMEBREW_DEVELOPER: 1
+
   sync:
     if: github.repository == 'Homebrew/.github'
-    needs: generate-matrix
+    needs: [generate-matrix, style]
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -84,15 +112,19 @@ jobs:
         with:
           persist-credentials: false
 
-      - run: brew install-bundler-gems --groups=style
-        if: matrix.repo == 'Homebrew/.github'
-        env:
-          HOMEBREW_DEVELOPER: 1
-
-      - run: brew style .github/actions/sync/*.rb
-        if: matrix.repo == 'Homebrew/.github'
-        env:
-          HOMEBREW_DEVELOPER: 1
+      - name: Clone brew.sh source repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          repository: Homebrew/brew.sh
+          path: source/brew.sh
+          persist-credentials: false
+          sparse-checkout: |
+            _includes
+            _layouts
+            _sass
+            assets/css
+            assets/img
+            bin
 
       - name: Clone target repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -121,7 +153,7 @@ jobs:
         id: detect_changes
         env:
           TARGET: target/${{ matrix.repo }}
-        run: ./.github/actions/sync/shared-config.rb "${TARGET}" '/home/linuxbrew/.linuxbrew/Homebrew'
+        run: ./.github/actions/sync/shared-config.rb "${TARGET}" '/home/linuxbrew/.linuxbrew/Homebrew' source/brew.sh
 
       - name: Create pull request
         if: (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && steps.detect_changes.outputs.pull_request == 'true'
