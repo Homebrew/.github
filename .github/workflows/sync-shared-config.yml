@@ -121,9 +121,6 @@ jobs:
           sparse-checkout: |
             _includes
             _layouts
-            _sass
-            assets/css
-            assets/img
             bin
 
       - name: Clone target repository

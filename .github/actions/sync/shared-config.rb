@@ -5,6 +5,10 @@ require "English"
 require "fileutils"
 require "find"
 require "open3"
+# Required when this script runs outside the Homebrew style environment.
+# rubocop:disable Lint/RedundantRequireStatement
+require "pathname"
+# rubocop:enable Lint/RedundantRequireStatement
 require "yaml"
 
 # This makes sense for a standalone script.
@@ -43,14 +47,7 @@ actionlint_workflow_yaml = ".github/workflows/actionlint.yml"
 stale_issues_workflow_yaml = ".github/workflows/stale-issues.yml"
 zizmor_yml = ".github/zizmor.yml"
 codeql_extensions_homebrew_actions_yml = ".github/codeql/extensions/homebrew-actions.yml"
-brewsh_theme_paths = %w[
-  _includes
-  _layouts
-  _sass
-  assets/css
-  assets/img
-  bin/jekyll
-].freeze
+brewsh_assets_url = "https://brew.sh"
 
 homebrew_docs = homebrew_repository_path/docs
 homebrew_ruby_version =
@@ -282,9 +279,9 @@ puts "Detecting changes…"
   end
 end
 
-if brewsh_repository_path
+if brewsh_repository_path && repository_name != "brew.sh"
   theme_site_path = case repository_name
-  when "brew.sh", "formulae.brew.sh"
+  when "formulae.brew.sh"
     target_directory_path
   else
     target_docs_path = target_directory_path/docs
@@ -292,18 +289,136 @@ if brewsh_repository_path
   end
 
   if theme_site_path
-    brewsh_theme_paths.each do |theme_path|
+    shared_theme_paths = %w[_includes _layouts].flat_map do |theme_path|
+      source_path = brewsh_repository_path/theme_path
+      next [] unless source_path.directory?
+
+      Find.find(source_path.to_s).filter_map do |path|
+        path = Pathname(path)
+        next if path.directory?
+
+        path.to_s.delete_prefix("#{brewsh_repository_path}/")
+      end
+    end
+
+    bin_jekyll = "bin/jekyll"
+    shared_theme_paths << bin_jekyll if (brewsh_repository_path/bin_jekyll).file?
+
+    read_front_matter = lambda do |path|
+      next {} unless path.file?
+
+      contents = path.read
+      front_matter = contents.match(/\A---\s*\n(.*?)\n---\s*\n/m)
+      next {} unless front_matter
+
+      YAML.safe_load(front_matter[1], permitted_classes: [Symbol], aliases: true) || {}
+    rescue Psych::Exception
+      {}
+    end
+
+    layout_path = lambda do |site_path, layout_name|
+      %w[html json md markdown].filter_map do |extension|
+        path = site_path/"_layouts/#{layout_name}.#{extension}"
+        path if path.file?
+      end.first
+    end
+
+    required_layouts = []
+    config_yml = theme_site_path/"_config.yml"
+    if config_yml.file?
+      config = YAML.safe_load(config_yml.read, permitted_classes: [Symbol], aliases: true) || {}
+      Array(config["defaults"]).each do |default|
+        required_layouts << default.dig("values", "layout")
+      end
+    end
+    has_posts = (theme_site_path/"_posts").directory?
+
+    Find.find(theme_site_path.to_s) do |path|
+      path = Pathname(path)
+      relative_path = path.to_s.delete_prefix("#{theme_site_path}/")
+      if path.directory?
+        next Find.prune if %w[.git .jekyll-cache _site assets vendor].include?(path.basename.to_s)
+        next Find.prune if relative_path.start_with?("_includes", "_layouts", "bin")
+
+        next
+      end
+      next unless %w[.html .md .markdown].include?(path.extname)
+
+      required_layouts << read_front_matter.call(path)["layout"]
+    end
+
+    theme_paths = [bin_jekyll]
+    seen_layouts = []
+    until required_layouts.empty?
+      layout = required_layouts.shift
+      next if layout.to_s.empty? || seen_layouts.include?(layout)
+
+      seen_layouts << layout
+      source_layout_path = layout_path.call(brewsh_repository_path, layout)
+      target_layout_path = layout_path.call(theme_site_path, layout)
+
+      if source_layout_path
+        theme_paths << source_layout_path.to_s.delete_prefix("#{brewsh_repository_path}/")
+        required_layouts << read_front_matter.call(source_layout_path)["layout"]
+      elsif target_layout_path
+        required_layouts << read_front_matter.call(target_layout_path)["layout"]
+      end
+    end
+
+    required_includes = theme_paths.filter_map do |theme_path|
+      next unless theme_path.start_with?("_layouts/")
+
+      (brewsh_repository_path/theme_path).read.scan(/{%-?\s*include\s+([^"'\s%]+|"[^"]+"|'[^']+')/).flatten
+    end.flatten
+
+    until required_includes.empty?
+      include_path = required_includes.shift
+      include_path = include_path.delete_prefix("'").delete_prefix('"').delete_suffix("'").delete_suffix('"')
+      next if include_path == "feed.html" && !has_posts
+
+      theme_path = "_includes/#{include_path}"
+      # `exclude?` is not available in all Ruby contexts this script may run in.
+      # rubocop:disable Homebrew/NegateInclude
+      next if theme_paths.include?(theme_path) || !shared_theme_paths.include?(theme_path)
+      # rubocop:enable Homebrew/NegateInclude
+
+      theme_paths << theme_path
+      required_includes.concat(
+        (brewsh_repository_path/theme_path).read.scan(/{%-?\s*include\s+([^"'\s%]+|"[^"]+"|'[^']+')/).flatten,
+      )
+    end
+
+    source_assets = theme_paths.filter_map do |theme_path|
+      source_path = brewsh_repository_path/theme_path
+      next unless source_path.file?
+
+      source_path.read.scan(%r{"/assets/([^/]+)/}).flatten
+    end.flatten.uniq
+
+    source_assets.each do |asset_type|
+      target_path = theme_site_path/"assets/#{asset_type}"
+      if asset_type == "img"
+        next unless target_path.directory?
+
+        target_path.children.select(&:file?).each { |child| FileUtils.rm_f child }
+        target_path.rmdir if target_path.children.empty?
+      else
+        FileUtils.rm_rf target_path
+      end
+    end
+
+    (shared_theme_paths - theme_paths).each do |theme_path|
+      FileUtils.rm_f theme_site_path/theme_path
+    end
+
+    theme_paths.each do |theme_path|
       source_path = brewsh_repository_path/theme_path
       next unless source_path.exist?
 
       if source_path.directory?
         Find.find(source_path.to_s) do |path|
           path = Pathname(path)
-          if path.directory?
-            next Find.prune if theme_path == "assets/img" && path.basename.to_s == "blog"
-
-            next
-          end
+          next if path.directory?
 
           relative_path = path.to_s.delete_prefix("#{source_path}/")
           target_path = theme_site_path/theme_path/relative_path
@@ -321,6 +436,50 @@ if brewsh_repository_path
         FileUtils.cp source_path, target_path
         FileUtils.chmod source_path.stat.mode, target_path
       end
+    end
+
+    %w[_includes _layouts].each do |theme_path|
+      target_path = theme_site_path/theme_path
+      next unless target_path.directory?
+
+      Find.find(target_path.to_s) do |path|
+        path = Pathname(path)
+        next if path.directory?
+
+        contents = path.read
+        updated_contents = contents.gsub(%r{\{\{\s*"/assets/(css|img)/([^"]+)"\s*\|\s*relative_url\s*\}\}}) do
+          "#{brewsh_assets_url}/assets/#{Regexp.last_match(1)}/#{Regexp.last_match(2)}"
+        end
+        unless has_posts
+          updated_contents = updated_contents.gsub(
+            /
+              \n\s*\{% if site\.feed and site\.posts\.size > 0 -%\}
+              \n\s*\{% include feed\.html -%\}
+              \n\s*\{% endif -%\}
+            /x,
+            "",
+          )
+        end
+        path.write updated_contents if contents != updated_contents
+      end
+    end
+
+    Find.find(theme_site_path.to_s) do |path|
+      path = Pathname(path)
+      relative_path = path.to_s.delete_prefix("#{theme_site_path}/")
+      if path.directory?
+        next Find.prune if %w[.git .jekyll-cache _site vendor].include?(path.basename.to_s)
+        next Find.prune if relative_path.start_with?("assets")
+
+        next
+      end
+      next unless [".html", ".md", ".markdown", ".yml", ".yaml"].include?(path.extname)
+
+      contents = path.read
+      updated_contents = contents.gsub(%r{(:\s*["']?)/assets/img/([^/"'\s]+)(["']?)}) do
+        "#{Regexp.last_match(1)}#{brewsh_assets_url}/assets/img/#{Regexp.last_match(2)}#{Regexp.last_match(3)}"
+      end
+      path.write updated_contents if contents != updated_contents
     end
   end
 end
