@@ -2,6 +2,12 @@
 
 No technology is perfect, and Homebrew believes that working with skilled security researchers across the globe is crucial in identifying weaknesses in any technology. If you believe you've found a security issue in Homebrew, we encourage you to notify us. We welcome working with you to resolve the issue promptly. Thank you for keeping Homebrew and its users safe!
 
+## AI Policy
+
+AI and LLM tools may help with security research but you remain fully responsible for everything you submit: treat their output as a fallible first draft and verify its correctness yourself before reporting. Disclose how, when and where you used AI or LLMs in your research or write-up, including the prompts used so we can verify them. See [Responsible AI Usage](https://docs.brew.sh/Responsible-AI-Usage) for more.
+
+AI output tends not to prioritise brevity, but we care deeply about it. Edit anything AI-generated down to the essentials before sending it to us: we are volunteers reading every word, and a concise report is a faster fix.
+
 ## Disclosure Policy
 
 Let us know as soon as possible upon discovery of a potential security issue, and we'll make every effort to quickly resolve the issue. Please bear in mind we're a project run entirely by volunteers in our spare time.
@@ -11,6 +17,10 @@ Make a good faith effort to avoid privacy violations, destruction of data, and i
 Please report suspected security vulnerabilities through GitHub's private vulnerability reporting for the affected repository. For Homebrew/brew, use [the security advisory form](https://github.com/Homebrew/brew/security/advisories/new).
 
 If it's a straightforward fix: please submit a pull request on GitHub.
+
+When reporting, please provide step-by-step reproduction steps, using `brew` commands where the issue involves the CLI. We can only fix what we can reproduce, and concrete steps let us confirm the issue quickly rather than guessing at your setup.
+
+Please also provide a clear explanation of the proposed mitigation(s). Understanding how you would fix the issue helps us assess its severity and ship the right fix sooner.
 
 We will respond to and fix reported, reproducible security vulnerabilities as soon as possible. A gentle reminder that we are a volunteer-run project so please cut us some slack here. Provide us a reasonable amount of time to resolve the issue before any disclosure to the public or a third-party.
 
@@ -63,7 +73,7 @@ A bug triggered only by convincing a user or CI job to run a crafted `brew` comm
 
 ### Third-Party Taps, Mirrors, Wrappers or Repositories
 
-A bug that depends on using an untrusted tap, mirror, wrapper, fork, checkout or repository is not a Homebrew security issue unless Homebrew's own code silently treats it as official or bypasses a documented protection. Users who configure these sources grant them trust outside Homebrew's security boundary, including trust in the tap author's formulae, casks, external commands and tap metadata.
+A bug that depends on using an untrusted tap, mirror, wrapper, fork, checkout or repository is not a Homebrew security issue unless Homebrew's own code silently treats it as official or bypasses a documented protection. Users who configure these sources grant them trust outside Homebrew's security boundary, including trust in the tap author's formulae, casks, external commands and tap metadata. As [Tap Trust](https://docs.brew.sh/Tap-Trust) explains, trusting a third-party tap means accepting that its code runs with your user's privileges, so vulnerabilities that only affect a malicious or compromised third-party tap should be reported to that tap rather than Homebrew.
 
 ### Malicious or Vulnerable Upstream Software
 
