@@ -42,8 +42,15 @@ rubocop_yaml = ".rubocop.yml"
 vale_ini = ".vale.ini"
 dependabot_template_yaml = ".github/actions/sync/dependabot.template.yml"
 dependabot_yaml = ".github/dependabot.yml"
+check_template_rb = ".github/scripts/check_template.rb"
 docs_workflow_yaml = ".github/workflows/docs.yml"
 actionlint_workflow_yaml = ".github/workflows/actionlint.yml"
+check_issues_workflow_yaml = ".github/workflows/check-issues.yml"
+check_prs_workflow_yaml = ".github/workflows/check-prs.yml"
+check_workflow_yamls = [
+  check_issues_workflow_yaml,
+  check_prs_workflow_yaml,
+].freeze
 stale_issues_workflow_yaml = ".github/workflows/stale-issues.yml"
 zizmor_yml = ".github/zizmor.yml"
 codeql_extensions_homebrew_actions_yml = ".github/codeql/extensions/homebrew-actions.yml"
@@ -138,6 +145,11 @@ custom_rubocop_repos = %w[
   patchelf.rb
   ruby-macho
 ].freeze
+template_check_repositories = %w[
+  brew
+  homebrew-core
+  homebrew-cask
+].freeze
 rejected_docs_basenames = %w[
   _config.yml
   CNAME
@@ -155,8 +167,10 @@ puts "Detecting changes…"
   ruby_version,
   rubocop_yaml,
   dependabot_yaml,
+  check_template_rb,
   deprecated_lock_threads,
   actionlint_workflow_yaml,
+  *check_workflow_yamls,
   stale_issues_workflow_yaml,
   zizmor_yml,
   codeql_extensions_homebrew_actions_yml,
@@ -249,7 +263,8 @@ puts "Detecting changes…"
       "# This file is synced from `Homebrew/brew` by the `.github` repository, do not modify it directly.\n" \
       "#{homebrew_rubocop_config}\n",
     )
-  when dependabot_yaml, actionlint_workflow_yaml, stale_issues_workflow_yaml,
+  when dependabot_yaml, actionlint_workflow_yaml, check_issues_workflow_yaml, check_prs_workflow_yaml,
+       stale_issues_workflow_yaml,
        zizmor_yml, codeql_extensions_homebrew_actions_yml
     contents = if path == dependabot_yaml
       dependabot_config
@@ -258,6 +273,11 @@ puts "Detecting changes…"
 
       # ensure we don't replace the non-dependabot template files in this repository
       next if repository_name == ".github"
+
+      if check_workflow_yamls.include?(path) && template_check_repositories.none?(repository_name)
+        FileUtils.rm_f target_path
+        next
+      end
 
       Pathname(path).read
                     .chomp
@@ -268,6 +288,15 @@ puts "Detecting changes…"
       "# This file is synced from the `.github` repository, do not modify it directly.\n" \
       "#{contents}\n",
     )
+  when check_template_rb
+    next if path == target_path.to_s
+
+    if template_check_repositories.none?(repository_name)
+      FileUtils.rm_f target_path
+      next
+    end
+
+    FileUtils.cp path, target_path
   when deprecated_lock_threads
     next unless target_path.exist?
 
