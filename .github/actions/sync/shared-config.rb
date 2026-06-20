@@ -290,13 +290,9 @@ puts "Detecting changes…"
     )
   when check_template_rb
     next if path == target_path.to_s
+    next if repository_name == ".github"
 
-    if template_check_repositories.none?(repository_name)
-      FileUtils.rm_f target_path
-      next
-    end
-
-    FileUtils.cp path, target_path
+    FileUtils.rm_f target_path
   when deprecated_lock_threads
     next unless target_path.exist?
 
