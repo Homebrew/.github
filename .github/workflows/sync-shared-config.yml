@@ -51,7 +51,6 @@ jobs:
             Homebrew/private
             Homebrew/ruby-macho
             Homebrew/homebrew-brew-vulns
-            Homebrew/brew-rs-private
             Homebrew/BrewUI
             Homebrew/patchelf.rb
           )
