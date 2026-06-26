@@ -1,9 +1,9 @@
-name: Manage stale issues
+name: Manage stale issues and pull requests
 
 on:
   push:
     paths:
-      - .github/workflows/stale-issues.yml
+      - .github/workflows/stale-issues-and-prs.yml
     branches-ignore:
       - dependabot/**
   schedule:
@@ -18,7 +18,7 @@ defaults:
     shell: bash -xeuo pipefail {0}
 
 concurrency:
-  group: stale-issues
+  group: stale-issues-and-prs
   cancel-in-progress: ${{ github.event_name != 'issue_comment' }}
 
 jobs:
@@ -49,8 +49,7 @@ jobs:
           stale-pr-message: >
             This pull request has been automatically marked as stale because it has not had
             recent activity. It will be closed if no further activity occurs.
-          exempt-issue-labels: "gsoc-outreachy,help wanted,in progress"
-          exempt-pr-labels: "gsoc-outreachy,help wanted,in progress"
+          exempt-issue-labels: "help wanted"
           delete-branch: true
 
   bump-pr-stale:
@@ -76,8 +75,6 @@ jobs:
           days-before-close: 1
           stale-pr-message: >
             This pull request has been automatically marked as stale because it has not had
-            recent activity. It will be closed if no further activity occurs. To keep this
-            pull request open, add a `help wanted` or `in progress` label.
-          exempt-pr-labels: "help wanted,in progress"
+            recent activity. It will be closed if no further activity occurs.
           any-of-labels: "bump-formula-pr,bump-cask-pr"
           delete-branch: true
