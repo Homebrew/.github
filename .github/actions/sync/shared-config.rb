@@ -552,7 +552,7 @@ end
 
 git "-C", target_directory, "add", "--all"
 
-out, err, status = Open3.capture3("git", "-C", target_directory, "diff", "--name-only", "--staged")
+out, err, status = Open3.capture3("git", "-C", target_directory, "diff", "--name-only", "--staged", "--no-renames")
 raise err unless status.success?
 
 modified_paths = out.lines.map(&:chomp)
