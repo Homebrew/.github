@@ -64,12 +64,12 @@ jobs:
     steps:
       - name: Set up Homebrew
         id: set-up-homebrew
-        uses: Homebrew/actions/setup-homebrew@main
+        uses: Homebrew/actions/setup-homebrew@1f8e202ffddf94def7f42f6fa3a482e821489f9c # 2026.07.10.1
         with:
           stable: false
 
       - name: Set up Homebrew portable Ruby
-        uses: Homebrew/actions/setup-ruby@main
+        uses: Homebrew/actions/setup-ruby@1f8e202ffddf94def7f42f6fa3a482e821489f9c # 2026.07.10.1
         with:
           portable-ruby: true
 
@@ -97,12 +97,12 @@ jobs:
     steps:
       - name: Set up Homebrew
         id: set-up-homebrew
-        uses: Homebrew/actions/setup-homebrew@main
+        uses: Homebrew/actions/setup-homebrew@1f8e202ffddf94def7f42f6fa3a482e821489f9c # 2026.07.10.1
         with:
           stable: false
 
       - name: Set up Homebrew portable Ruby
-        uses: Homebrew/actions/setup-ruby@main
+        uses: Homebrew/actions/setup-ruby@1f8e202ffddf94def7f42f6fa3a482e821489f9c # 2026.07.10.1
         with:
           portable-ruby: true
 
@@ -132,13 +132,13 @@ jobs:
           persist-credentials: true
 
       - name: Configure Git user
-        uses: Homebrew/actions/git-user-config@main
+        uses: Homebrew/actions/git-user-config@1f8e202ffddf94def7f42f6fa3a482e821489f9c # 2026.07.10.1
         with:
           username: BrewTestBot
 
       - name: Set up SSH commit signing
         if: github.event_name != 'pull_request' || github.actor != 'dependabot[bot]'
-        uses: Homebrew/actions/setup-commit-signing@main
+        uses: Homebrew/actions/setup-commit-signing@1f8e202ffddf94def7f42f6fa3a482e821489f9c # 2026.07.10.1
         with:
           signing_key: ${{ secrets.BREWTESTBOT_SSH_SIGNING_KEY }}
 
