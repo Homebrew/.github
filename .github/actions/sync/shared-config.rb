@@ -52,7 +52,6 @@ check_workflow_yamls = [
   check_prs_workflow_yaml,
 ].freeze
 stale_issues_and_prs_workflow_yaml = ".github/workflows/stale-issues-and-prs.yml"
-zizmor_yml = ".github/zizmor.yml"
 codeql_extensions_homebrew_actions_yml = ".github/codeql/extensions/homebrew-actions.yml"
 brewsh_assets_url = "https://brew.sh"
 
@@ -157,8 +156,7 @@ rejected_docs_basenames = %w[
   README.md
 ].freeze
 
-deprecated_lock_threads = ".github/workflows/lock-threads.yml"
-deprecated_stale_issues_workflow_yaml = ".github/workflows/stale-issues.yml"
+deprecated_zizmor_yml = ".github/zizmor.yml"
 
 puts "Detecting changes…"
 [
@@ -169,12 +167,10 @@ puts "Detecting changes…"
   rubocop_yaml,
   dependabot_yaml,
   check_template_rb,
-  deprecated_lock_threads,
-  deprecated_stale_issues_workflow_yaml,
+  deprecated_zizmor_yml,
   actionlint_workflow_yaml,
   *check_workflow_yamls,
   stale_issues_and_prs_workflow_yaml,
-  zizmor_yml,
   codeql_extensions_homebrew_actions_yml,
 ].each do |path|
   target_path = target_directory_path/path
@@ -267,7 +263,7 @@ puts "Detecting changes…"
     )
   when dependabot_yaml, actionlint_workflow_yaml, check_issues_workflow_yaml, check_prs_workflow_yaml,
        stale_issues_and_prs_workflow_yaml,
-       zizmor_yml, codeql_extensions_homebrew_actions_yml
+       codeql_extensions_homebrew_actions_yml
     contents = if path == dependabot_yaml
       dependabot_config
     else
@@ -295,7 +291,7 @@ puts "Detecting changes…"
     next if repository_name == ".github"
 
     FileUtils.rm_f target_path
-  when deprecated_lock_threads, deprecated_stale_issues_workflow_yaml
+  when deprecated_zizmor_yml
     next unless target_path.exist?
 
     git "-C", target_directory, "rm", path
