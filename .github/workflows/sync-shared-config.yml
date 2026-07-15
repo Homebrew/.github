@@ -38,9 +38,11 @@ jobs:
           repositories=(
             Homebrew/.github
             Homebrew/actions
+            Homebrew/advisory-database
             Homebrew/brew
             Homebrew/brew-pip-audit
             Homebrew/brew.sh
+            Homebrew/BrewUI
             Homebrew/ci-orchestrator-private
             Homebrew/discussions
             Homebrew/formulae.brew.sh
@@ -48,11 +50,9 @@ jobs:
             Homebrew/homebrew-cask
             Homebrew/homebrew-core
             Homebrew/install
+            Homebrew/patchelf.rb
             Homebrew/private
             Homebrew/ruby-macho
-            Homebrew/homebrew-brew-vulns
-            Homebrew/BrewUI
-            Homebrew/patchelf.rb
           )
           if [[ "${SKIP_PRIVATE}" == true ]]; then
             read -r -a repositories <<< "${repositories[@]//*private}"
