@@ -9,13 +9,20 @@ require "open3"
 # rubocop:disable Lint/RedundantRequireStatement
 require "pathname"
 # rubocop:enable Lint/RedundantRequireStatement
+require "tmpdir"
 require "yaml"
 
 # This makes sense for a standalone script.
 # rubocop:disable Style/TopLevelMethodDefinition
 def git(*args)
-  system "git", *args
-  exit $CHILD_STATUS.exitstatus unless $CHILD_STATUS.success?
+  safe_system("git", *args)
+end
+
+def safe_system(*args)
+  system(*args)
+  status = $CHILD_STATUS
+  abort "Failed to run command: #{args.join(" ")}" if status.nil?
+  exit(status.exitstatus || 1) unless status.success?
 end
 # rubocop:enable Style/TopLevelMethodDefinition
 
@@ -531,7 +538,13 @@ unless custom_ruby_version_repos.include?(repository_name)
         false,
       ).locked_gems.bundler_version
       puts "Running bundle update (with Bundler #{bundler_version})..."
-      system "bundle", "update", "--ruby", "--bundler=#{bundler_version}", "--quiet", out: "/dev/null"
+      Dir.mktmpdir do |tmpdir|
+        safe_system(
+          { "BUNDLE_PATH" => tmpdir },
+          "bundle", "update", "--ruby", "--bundler=#{bundler_version}", "--quiet",
+          out: "/dev/null"
+        )
+      end
     end
   end
 end
