@@ -33,31 +33,21 @@ jobs:
       - name: Generate matrix
         id: generate-matrix
         env:
-          SKIP_PRIVATE: ${{ github.event_name == 'pull_request' && github.actor == 'dependabot[bot]' }}
+          GH_TOKEN: ${{ secrets.HOMEBREW_DOTGITHUB_WORKFLOW_TOKEN || github.token }}
+          SKIP_PRIVATE: ${{ github.event_name == 'pull_request' && (github.actor == 'dependabot[bot]' || github.event.pull_request.head.repo.fork) }}
         run: |
-          repositories=(
-            Homebrew/.github
-            Homebrew/actions
-            Homebrew/advisory-database
-            Homebrew/brew
-            Homebrew/brew-pip-audit
-            Homebrew/brew.sh
-            Homebrew/BrewUI
-            Homebrew/ci-orchestrator-private
-            Homebrew/discussions
-            Homebrew/formulae.brew.sh
-            Homebrew/glibc-bootstrap
-            Homebrew/homebrew-cask
-            Homebrew/homebrew-core
-            Homebrew/install
-            Homebrew/patchelf.rb
-            Homebrew/private
-            Homebrew/ruby-macho
+          repo_list_args=(
+            --limit 1000
+            --no-archived
+            --source
           )
-          if [[ "${SKIP_PRIVATE}" == true ]]; then
-            read -r -a repositories <<< "${repositories[@]//*private}"
+          if [[ "${SKIP_PRIVATE}" == true ]]
+          then
+            repo_list_args+=(--visibility public)
           fi
-          echo "matrix=$(jq -cn '$ARGS.positional' --args -- "${repositories[@]}")" >> "${GITHUB_OUTPUT}"
+          gh repo list Homebrew "${repo_list_args[@]}" \
+            --json nameWithOwner |
+            jq -r '"matrix=\(map(.nameWithOwner) | tojson)"' >> "${GITHUB_OUTPUT}"
   style:
     if: github.repository == 'Homebrew/.github'
     runs-on: ubuntu-latest
