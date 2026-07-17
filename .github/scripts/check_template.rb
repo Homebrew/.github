@@ -49,8 +49,11 @@ when "issue"
   # Pass when the body keeps at least REQUIRED_TEMPLATE_PERCENTAGE of some template's
   # headings and checkboxes combined (ticked or not). Counting headings as well as
   # checkboxes lets the feature template (a single checkbox) be told apart from a
-  # stripped body. The missing items from the closest template are reported on stderr.
+  # stripped body. The missing items from the closest current-repository template
+  # are reported on stderr.
   body_lines = lines.call(ARGV.fetch(1))
+  repository = ARGV.fetch(3) { ENV.fetch("GITHUB_REPOSITORY") }
+  repository_template_prefix = "#{repository.tr("/", "-")}-"
 
   templates = Dir.glob("#{ARGV.fetch(2)}/*.{yml,yaml}").filter_map do |template_path|
     fields = YAML.safe_load_file(template_path).fetch("body", [])
@@ -65,7 +68,12 @@ when "issue"
 
     missing = items.reject { |_kind, label| body_lines.any? { |line| line.include?(label) } }
     present_count = items.length - missing.length
-    { total: items.length, present_count: present_count, missing: missing }
+    {
+      current_repository: File.basename(template_path).start_with?(repository_template_prefix),
+      total:              items.length,
+      present_count:      present_count,
+      missing:            missing,
+    }
   end
 
   preserves_template = templates.any? do |template|
@@ -76,13 +84,15 @@ when "issue"
     puts true
   else
     puts false
-    closest_missing = templates.min_by { |template| template[:missing].length }&.fetch(:missing)
+    closest_missing = templates.select { |template| template[:current_repository] }
+                               .min_by { |template| template[:missing].length }
+                               &.fetch(:missing)
     closest_missing&.each do |kind, label|
       warn((kind == :checkbox) ? "- [ ] #{label}" : "- `#{ISSUE_FORM_HEADING_MARKER}#{label}` section")
     end
   end
 else
   warn "Usage: check_template.rb pull-request BODY TEMPLATE"
-  warn "       check_template.rb issue BODY TEMPLATE_DIRECTORY"
+  warn "       check_template.rb issue BODY TEMPLATE_DIRECTORY REPOSITORY"
   exit 1
 end
