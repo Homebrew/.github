@@ -49,6 +49,7 @@ rubocop_yaml = ".rubocop.yml"
 vale_ini = ".vale.ini"
 dependabot_template_yaml = ".github/actions/sync/dependabot.template.yml"
 dependabot_yaml = ".github/dependabot.yml"
+denied_licenses_txt = ".github/denied-licenses.txt"
 check_template_rb = ".github/scripts/check_template.rb"
 docs_workflow_yaml = ".github/workflows/docs.yml"
 actionlint_workflow_yaml = ".github/workflows/actionlint.yml"
@@ -58,6 +59,12 @@ check_workflow_yamls = [
   check_issues_workflow_yaml,
   check_prs_workflow_yaml,
 ].freeze
+licenses_workflow_yaml = ".github/workflows/licenses.yml"
+license_check_paths = [
+  denied_licenses_txt,
+  licenses_workflow_yaml,
+].freeze
+license_package_ecosystems = %w[bundler cargo npm pip].freeze
 stale_issues_and_prs_workflow_yaml = ".github/workflows/stale-issues-and-prs.yml"
 codeql_extensions_homebrew_actions_yml = ".github/codeql/extensions/homebrew-actions.yml"
 brewsh_assets_url = "https://brew.sh"
@@ -140,6 +147,9 @@ dependabot_config_yaml["updates"] = dependabot_config_yaml["updates"].filter_map
 
   update
 end
+licenses_enabled = dependabot_config_yaml["updates"].any? do |update|
+  license_package_ecosystems.include?(update["package-ecosystem"])
+end
 dependabot_config = dependabot_config_yaml.to_yaml
 
 custom_ruby_version_repos = %w[
@@ -173,6 +183,7 @@ puts "Detecting changes…"
   ruby_version,
   rubocop_yaml,
   dependabot_yaml,
+  *license_check_paths,
   check_template_rb,
   deprecated_zizmor_yml,
   actionlint_workflow_yaml,
@@ -268,8 +279,8 @@ puts "Detecting changes…"
       "# This file is synced from `Homebrew/brew` by the `.github` repository, do not modify it directly.\n" \
       "#{homebrew_rubocop_config}\n",
     )
-  when dependabot_yaml, actionlint_workflow_yaml, check_issues_workflow_yaml, check_prs_workflow_yaml,
-       stale_issues_and_prs_workflow_yaml,
+  when dependabot_yaml, denied_licenses_txt, licenses_workflow_yaml, actionlint_workflow_yaml,
+       check_issues_workflow_yaml, check_prs_workflow_yaml, stale_issues_and_prs_workflow_yaml,
        codeql_extensions_homebrew_actions_yml
     contents = if path == dependabot_yaml
       dependabot_config
@@ -278,6 +289,11 @@ puts "Detecting changes…"
 
       # ensure we don't replace the non-dependabot template files in this repository
       next if repository_name == ".github"
+
+      if license_check_paths.include?(path) && !licenses_enabled
+        FileUtils.rm_f target_path
+        next
+      end
 
       if check_workflow_yamls.include?(path) && template_check_repositories.none?(repository_name)
         FileUtils.rm_f target_path
