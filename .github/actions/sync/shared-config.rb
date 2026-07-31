@@ -123,6 +123,8 @@ dependabot_config_yaml["updates"] = dependabot_config_yaml["updates"].filter_map
     "requirements.txt"
   when "opentofu"
     ".terraform.lock.hcl"
+  when "uv"
+    "uv.lock"
   end
 
   keep_update = if (update_directories = update["directories"])
