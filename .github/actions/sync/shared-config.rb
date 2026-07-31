@@ -67,6 +67,10 @@ license_check_paths = [
 license_package_ecosystems = %w[bundler cargo npm pip].freeze
 stale_issues_and_prs_workflow_yaml = ".github/workflows/stale-issues-and-prs.yml"
 codeql_extensions_homebrew_actions_yml = ".github/codeql/extensions/homebrew-actions.yml"
+shared_jekyll_paths = %w[
+  bin/jekyll
+  script/bootstrap
+].freeze
 brewsh_assets_url = "https://brew.sh"
 
 homebrew_docs = homebrew_repository_path/docs
@@ -213,7 +217,7 @@ puts "Detecting changes…"
       next if rejected_docs_basenames.include?(docs_path_basename)
 
       docs_path_subpath = docs_path.to_s.delete_prefix("#{homebrew_docs}/")
-      next if docs_path_subpath.start_with?("_includes/", "_layouts/", "_sass/", "assets/css/", "bin/jekyll")
+      next if docs_path_subpath.start_with?("_includes/", "_layouts/", "_sass/", "assets/css/", *shared_jekyll_paths)
       next if docs_path_subpath.start_with?("assets/img/") && !docs_path_subpath.start_with?("assets/img/docs/")
 
       target_docs_path = target_path/docs_path_subpath
@@ -349,8 +353,9 @@ if brewsh_repository_path && repository_name != "brew.sh"
       end
     end
 
-    bin_jekyll = "bin/jekyll"
-    shared_theme_paths << bin_jekyll if (brewsh_repository_path/bin_jekyll).file?
+    shared_jekyll_paths.each do |path|
+      shared_theme_paths << path if (brewsh_repository_path/path).file?
+    end
 
     read_front_matter = lambda do |path|
       next {} unless path.file?
@@ -395,7 +400,7 @@ if brewsh_repository_path && repository_name != "brew.sh"
       required_layouts << read_front_matter.call(path)["layout"]
     end
 
-    theme_paths = [bin_jekyll]
+    theme_paths = shared_jekyll_paths.dup
     seen_layouts = []
     until required_layouts.empty?
       layout = required_layouts.shift
