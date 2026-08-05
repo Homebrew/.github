@@ -31,6 +31,13 @@ end
 
 case ARGV.fetch(0)
 when "pull-request"
+  repository = ARGV[4]
+  if repository && !repository.empty? && ARGV.fetch(3, "").match?(/\ARevert ".+"\z/) &&
+     File.read(ARGV.fetch(1), mode: "rb").rstrip.match?(/\AReverts #{Regexp.escape(repository)}#\d+\z/)
+    puts true
+    exit
+  end
+
   # Pass when the body keeps at least REQUIRED_TEMPLATE_PERCENTAGE of the template's
   # headings and checkboxes combined (ticked or not) and still discloses AI usage:
   # either the template's AI disclosure checkbox (whose label mentions AI) or any
@@ -92,7 +99,7 @@ when "issue"
     end
   end
 else
-  warn "Usage: check_template.rb pull-request BODY TEMPLATE"
+  warn "Usage: check_template.rb pull-request BODY TEMPLATE [TITLE REPOSITORY]"
   warn "       check_template.rb issue BODY TEMPLATE_DIRECTORY REPOSITORY"
   exit 1
 end
