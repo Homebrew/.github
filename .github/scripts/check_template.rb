@@ -33,7 +33,7 @@ case ARGV.fetch(0)
 when "pull-request"
   repository = ARGV[4]
   if repository && !repository.empty? && ARGV.fetch(3, "").match?(/\ARevert ".+"\z/) &&
-     File.read(ARGV.fetch(1), mode: "rb").rstrip.match?(/\AReverts #{Regexp.escape(repository)}#\d+\z/)
+     File.read(ARGV.fetch(1), mode: "rb").match?(/\A\s*Reverts #{Regexp.escape(repository)}#\d+\r?$/)
     puts true
     exit
   end
