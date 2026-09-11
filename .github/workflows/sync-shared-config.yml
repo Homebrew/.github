@@ -54,12 +54,12 @@ jobs:
     steps:
       - name: Set up Homebrew
         id: set-up-homebrew
-        uses: Homebrew/actions/setup-homebrew@3cdb78d0f62ad29dd32de765782654f4eedea607 # 2026.08.31.1
+        uses: Homebrew/actions/setup-homebrew@f8d4222eb633e65c2a0157383cf80861fc7fae7f # 2026.09.07.1
         with:
           stable: false
 
       - name: Set up Homebrew portable Ruby
-        uses: Homebrew/actions/setup-ruby@3cdb78d0f62ad29dd32de765782654f4eedea607 # 2026.08.31.1
+        uses: Homebrew/actions/setup-ruby@f8d4222eb633e65c2a0157383cf80861fc7fae7f # 2026.09.07.1
         with:
           portable-ruby: true
 
@@ -87,12 +87,12 @@ jobs:
     steps:
       - name: Set up Homebrew
         id: set-up-homebrew
-        uses: Homebrew/actions/setup-homebrew@3cdb78d0f62ad29dd32de765782654f4eedea607 # 2026.08.31.1
+        uses: Homebrew/actions/setup-homebrew@f8d4222eb633e65c2a0157383cf80861fc7fae7f # 2026.09.07.1
         with:
           stable: false
 
       - name: Set up Homebrew portable Ruby
-        uses: Homebrew/actions/setup-ruby@3cdb78d0f62ad29dd32de765782654f4eedea607 # 2026.08.31.1
+        uses: Homebrew/actions/setup-ruby@f8d4222eb633e65c2a0157383cf80861fc7fae7f # 2026.09.07.1
         with:
           portable-ruby: true
 
@@ -123,13 +123,13 @@ jobs:
           persist-credentials: true
 
       - name: Configure Git user
-        uses: Homebrew/actions/git-user-config@3cdb78d0f62ad29dd32de765782654f4eedea607 # 2026.08.31.1
+        uses: Homebrew/actions/git-user-config@f8d4222eb633e65c2a0157383cf80861fc7fae7f # 2026.09.07.1
         with:
           username: BrewTestBot
 
       - name: Set up SSH commit signing
         if: github.event_name != 'pull_request' || github.actor != 'dependabot[bot]'
-        uses: Homebrew/actions/setup-commit-signing@3cdb78d0f62ad29dd32de765782654f4eedea607 # 2026.08.31.1
+        uses: Homebrew/actions/setup-commit-signing@f8d4222eb633e65c2a0157383cf80861fc7fae7f # 2026.09.07.1
         with:
           signing_key: ${{ secrets.BREWTESTBOT_SSH_SIGNING_KEY }}
 
