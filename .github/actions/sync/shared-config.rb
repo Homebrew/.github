@@ -181,6 +181,15 @@ rejected_docs_basenames = %w[
 
 deprecated_zizmor_yml = ".github/zizmor.yml"
 
+out, err, status = Open3.capture3("git", "-C", target_directory, "ls-files", "-z")
+raise err unless status.success?
+
+ruby_manifests = %w[Gemfile Gemfile.lock Rakefile].freeze
+uses_ruby = out.split("\0").any? do |path|
+  path.end_with?(".rb", ".rbi", ".rake", ".gemspec") ||
+    ruby_manifests.include?(File.basename(path))
+end
+
 puts "Detecting changes…"
 [
   docs,
@@ -199,6 +208,16 @@ puts "Detecting changes…"
 ].each do |path|
   target_path = target_directory_path/path
   target_path.dirname.mkpath
+
+  if [ruby_version, rubocop_yaml].include?(path)
+    next if path == ruby_version && custom_ruby_version_repos.include?(repository_name)
+    next if path == rubocop_yaml && custom_rubocop_repos.include?(repository_name)
+
+    unless uses_ruby
+      FileUtils.rm_f target_path
+      next
+    end
+  end
 
   case path
   when docs
@@ -265,8 +284,6 @@ puts "Detecting changes…"
       "#{contents}\n",
     )
   when ruby_version
-    next if custom_ruby_version_repos.include?(repository_name)
-
     target_path = target_directory_path/"Library/Homebrew/#{ruby_version}" if repository_name == "brew"
 
     if target_path.exist?
@@ -278,8 +295,6 @@ puts "Detecting changes…"
 
     target_path.write("#{homebrew_ruby_version}\n")
   when rubocop_yaml
-    next if custom_rubocop_repos.include?(repository_name)
-
     FileUtils.rm_f target_path
     target_path.write(
       "# This file is synced from `Homebrew/brew` by the `.github` repository, do not modify it directly.\n" \
