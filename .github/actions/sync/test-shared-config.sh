@@ -81,6 +81,30 @@ sync_target
 test ! -e "$target/.ruby-version"
 test "$(cat "$target/.rubocop.yml")" = '# original configuration'
 
+for repository in brew homebrew-core homebrew-cask BrewUI no-template-checks
+do
+  prepare_target "${repository}"
+  mkdir -p "${target}/.github/workflows"
+  for workflow in check-issues check-prs
+  do
+    printf '# Custom %s workflow\n' "${workflow}" > "${target}/.github/workflows/${workflow}.yml"
+  done
+  commit_fixture
+  sync_target
+  for workflow in check-issues check-prs
+  do
+    if [[ "${repository}" != no-template-checks ]]
+    then
+      cmp "${target}/.github/workflows/${workflow}.yml" <(
+        printf '%s\n' "# This file is synced from the \`.github\` repository, do not modify it directly."
+        cat ".github/workflows/${workflow}.yml"
+      )
+    else
+      test ! -e "${target}/.github/workflows/${workflow}.yml"
+    fi
+  done
+done
+
 target="$workdir/not-a-repository"
 mkdir "$target"
 printf 'keep\n' > "$target/.ruby-version"
@@ -92,4 +116,4 @@ fi
 test "$(cat "$target/.ruby-version")" = keep
 test "$(cat "$target/.rubocop.yml")" = keep
 
-echo 'Shared Ruby configuration checks passed.'
+echo 'Shared configuration checks passed.'
