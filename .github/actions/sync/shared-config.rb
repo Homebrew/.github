@@ -193,10 +193,11 @@ end
 
 puts "Detecting changes…"
 [
+  ruby_version,
   docs,
   docs_workflow_yaml,
   vale_ini,
-  ruby_version,
+  "Gemfile",
   rubocop_yaml,
   dependabot_yaml,
   *license_check_paths,
@@ -248,8 +249,8 @@ puts "Detecting changes…"
       target_docs_path.dirname.mkpath
 
       if [ruby_version, "Gemfile"].include?(docs_path_basename) &&
-         (target_path/docs_path_basename).exist?
-        FileUtils.rm target_docs_path
+         (target_directory_path/docs_path_basename).exist?
+        FileUtils.rm_f target_docs_path
         Dir.chdir target_path do
           FileUtils.ln_s "../#{docs_path_basename}", "."
         end
@@ -260,6 +261,7 @@ puts "Detecting changes…"
           "#{homebrew_docs_rubocop_config}\n",
         )
       elsif docs_path != target_docs_path
+        FileUtils.rm_f target_docs_path if target_docs_path.symlink?
         FileUtils.cp docs_path, target_docs_path
       end
     end
@@ -295,6 +297,15 @@ puts "Detecting changes…"
     end
 
     target_path.write("#{homebrew_ruby_version}\n")
+  when "Gemfile"
+    next if repository_name == "brew" || custom_ruby_version_repos.include?(repository_name)
+    next unless target_path.file?
+
+    contents = target_path.read
+    updated_contents = contents.sub(/^ruby file: "\.ruby-version"$/) do
+      (homebrew_docs/"Gemfile").read.lines.grep(/\Aruby /).fetch(0).chomp
+    end
+    target_path.write(updated_contents) if contents != updated_contents
   when rubocop_yaml
     FileUtils.rm_f target_path
     target_path.write(
