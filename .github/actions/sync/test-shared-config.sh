@@ -9,7 +9,13 @@ cd "$source_repository"
 
 # These fixtures test configuration selection, not dependency installation.
 mkdir "$workdir/bin"
-printf '#!/bin/sh\nexit 0\n' > "$workdir/bin/bundle"
+cat > "$workdir/bin/bundle" <<'SH'
+#!/bin/sh
+if [ -f Gemfile ] && grep -q '^ruby file: "\.ruby-version"$' Gemfile; then
+  echo 'Ruby requirement must be migrated before updating the lockfile.' >&2
+  exit 1
+fi
+SH
 chmod +x "$workdir/bin/bundle"
 export PATH="$workdir/bin:$PATH"
 
@@ -69,11 +75,74 @@ touch "$target/untracked.rb"
 sync_target
 assert_no_ruby_config
 
-prepare_target ruby-macho
+printf 'source "https://rubygems.org"\n\nruby file: ".ruby-version"\n\ngem "rake"\n' > "$workdir/original-gemfile"
+ruby_requirement="$(sed -n '/^ruby /p' "$brew_repository/docs/Gemfile")"
+printf 'source "https://rubygems.org"\n\n%s\n\ngem "rake"\n' "$ruby_requirement" > "$workdir/expected-gemfile"
+
+for layout in root root-with-lock docs shared-docs dangling-docs first-sync-docs; do
+  prepare_target "$layout"
+  if [[ "$layout" == root || "$layout" == root-with-lock || "$layout" == shared-docs ]]; then
+    cp "$workdir/original-gemfile" "$target/Gemfile"
+  fi
+  if [[ "$layout" == root-with-lock ]]; then
+    touch "$target/Gemfile.lock"
+  elif [[ "$layout" != root ]]; then
+    mkdir "$target/docs"
+    if [[ "$layout" == dangling-docs ]]; then
+      ln -s ../Gemfile "$target/docs/Gemfile"
+    else
+      cp "$workdir/original-gemfile" "$target/docs/Gemfile"
+    fi
+    touch "$target/docs/Gemfile.lock"
+    if [[ "$layout" == first-sync-docs ]]; then
+      mv "$target/.ruby-version" "$target/docs/.ruby-version"
+    fi
+  fi
+  commit_fixture
+  sync_target
+  if [[ "$layout" == docs || "$layout" == dangling-docs || "$layout" == first-sync-docs ]]; then
+    if [[ -e "$target/Gemfile" ]]; then
+      echo 'Docs-only sync must not create a root Gemfile.' >&2
+      exit 1
+    fi
+    if [[ -L "$target/docs/Gemfile" ]]; then
+      echo 'Docs-only Gemfile must not link to a missing root Gemfile.' >&2
+      exit 1
+    fi
+    cmp "$brew_repository/docs/Gemfile" "$target/docs/Gemfile"
+  else
+    cmp "$workdir/expected-gemfile" "$target/Gemfile"
+    if [[ "$layout" == shared-docs ]]; then
+      test "$(readlink "$target/docs/Gemfile")" = '../Gemfile'
+    fi
+  fi
+  if [[ "$layout" == first-sync-docs ]]; then
+    if [[ "$(readlink "$target/docs/.ruby-version")" != '../.ruby-version' ]]; then
+      echo 'The docs Ruby version must link to the root after the first sync.' >&2
+      exit 1
+    fi
+  fi
+  synced_head="$(git -C "$target" rev-parse HEAD)"
+  sync_target
+  test "$(git -C "$target" rev-parse HEAD)" = "$synced_head"
+done
+
+for repository in ruby-macho patchelf.rb; do
+  prepare_target "$repository"
+  cp "$workdir/original-gemfile" "$target/Gemfile"
+  touch "$target/Gemfile.lock"
+  commit_fixture
+  sync_target
+  cmp "$workdir/original-gemfile" "$target/Gemfile"
+  test "$(cat "$target/.ruby-version")" = '4.0.6'
+  test "$(cat "$target/.rubocop.yml")" = '# original configuration'
+done
+
+prepare_target custom-ruby-requirement
+printf 'ruby ">= 3.3"\n' > "$target/Gemfile"
 commit_fixture
 sync_target
-test "$(cat "$target/.ruby-version")" = '4.0.6'
-test "$(cat "$target/.rubocop.yml")" = '# original configuration'
+test "$(cat "$target/Gemfile")" = 'ruby ">= 3.3"'
 
 prepare_target ci-orchestrator-private
 commit_fixture
