@@ -76,8 +76,11 @@ jobs:
         env:
           HOMEBREW_DEVELOPER: 1
 
-      - name: Test Ruby configuration detection
+      - name: Test shared configuration
         run: bash .github/actions/sync/test-shared-config.sh "$(brew --repository)"
+
+      - name: Test template workflows
+        run: bash .github/actions/sync/test-template-workflows.sh
 
   sync:
     if: github.repository == 'Homebrew/.github'

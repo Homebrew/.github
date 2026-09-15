@@ -168,6 +168,7 @@ custom_rubocop_repos = %w[
   ruby-macho
 ].freeze
 template_check_repositories = %w[
+  BrewUI
   brew
   homebrew-core
   homebrew-cask
