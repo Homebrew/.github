@@ -72,7 +72,7 @@ jobs:
         env:
           HOMEBREW_DEVELOPER: 1
 
-      - run: brew style .github/actions/sync/*.rb
+      - run: brew style .github/actions/sync/*.rb .github/scripts/check-licenses.sh
         env:
           HOMEBREW_DEVELOPER: 1
 
@@ -81,6 +81,9 @@ jobs:
 
       - name: Test template workflows
         run: bash .github/actions/sync/test-template-workflows.sh
+
+      - name: Test license workflow
+        run: bash .github/actions/sync/test-license-workflow.sh
 
   sync:
     if: github.repository == 'Homebrew/.github'

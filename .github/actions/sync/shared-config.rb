@@ -60,9 +60,11 @@ check_workflow_yamls = [
   check_prs_workflow_yaml,
 ].freeze
 licenses_workflow_yaml = ".github/workflows/licenses.yml"
+check_licenses_sh = ".github/scripts/check-licenses.sh"
 license_check_paths = [
   denied_licenses_txt,
   licenses_workflow_yaml,
+  check_licenses_sh,
 ].freeze
 license_package_ecosystems = %w[bundler cargo npm pip].freeze
 stale_issues_and_prs_workflow_yaml = ".github/workflows/stale-issues-and-prs.yml"
@@ -185,8 +187,13 @@ deprecated_zizmor_yml = ".github/zizmor.yml"
 out, err, status = Open3.capture3("git", "-C", target_directory, "ls-files", "-z")
 raise err unless status.success?
 
+tracked_files = out.split("\0")
+
+swift_manifests = ["Package.swift", "Package.resolved"].freeze
+licenses_enabled ||= tracked_files.any? { |path| swift_manifests.include?(File.basename(path)) }
+
 ruby_manifests = %w[Gemfile Gemfile.lock Rakefile].freeze
-uses_ruby = out.split("\0").any? do |path|
+uses_ruby = tracked_files.any? do |path|
   path.end_with?(".rb", ".rbi", ".rake", ".gemspec") ||
     ruby_manifests.include?(File.basename(path))
 end
@@ -312,7 +319,7 @@ puts "Detecting changes…"
       "# This file is synced from `Homebrew/brew` by the `.github` repository, do not modify it directly.\n" \
       "#{homebrew_rubocop_config}\n",
     )
-  when dependabot_yaml, denied_licenses_txt, licenses_workflow_yaml, actionlint_workflow_yaml,
+  when dependabot_yaml, denied_licenses_txt, licenses_workflow_yaml, check_licenses_sh, actionlint_workflow_yaml,
        check_issues_workflow_yaml, check_prs_workflow_yaml, stale_issues_and_prs_workflow_yaml,
        codeql_extensions_homebrew_actions_yml
     contents = if path == dependabot_yaml
@@ -337,11 +344,15 @@ puts "Detecting changes…"
                     .chomp
     end
 
+    header = "# This file is synced from the `.github` repository, do not modify it directly.\n"
+    # Keep a shebang on the first line so synced shell scripts still pass ShellCheck.
+    if contents.start_with?("#!")
+      shebang, contents = contents.split("\n", 2)
+      header = "#{shebang}\n#{header}"
+    end
+
     FileUtils.rm_f target_path
-    target_path.write(
-      "# This file is synced from the `.github` repository, do not modify it directly.\n" \
-      "#{contents}\n",
-    )
+    target_path.write("#{header}#{contents}\n")
   when check_template_rb
     next if path == target_path.to_s
     next if repository_name == ".github"

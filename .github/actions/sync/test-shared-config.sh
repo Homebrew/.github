@@ -66,6 +66,64 @@ assert_no_ruby_config
 test ! -s "$BUNDLE_TEST_ARGS"
 
 case_index=0
+for filename in 'Package.swift' 'Package.resolved' 'Tools/Lint/Package.swift' 'Tools/Lint/Package.resolved' \
+                'App.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved'; do
+  case_index=$((case_index + 1))
+  prepare_target "swift-$case_index"
+  mkdir -p "$target/$(dirname "$filename")"
+  touch "$target/$filename"
+  commit_fixture
+  sync_target
+  for path in .github/denied-licenses.txt .github/workflows/licenses.yml; do
+    cmp "$target/$path" <(
+      printf '%s\n' "# This file is synced from the \`.github\` repository, do not modify it directly."
+      cat "$path"
+    )
+  done
+  cmp "$target/.github/scripts/check-licenses.sh" <(
+    head -1 .github/scripts/check-licenses.sh
+    printf '%s\n' "# This file is synced from the \`.github\` repository, do not modify it directly."
+    tail -n +2 .github/scripts/check-licenses.sh
+  )
+  assert_no_ruby_config
+  test ! -s "$BUNDLE_TEST_ARGS"
+  ruby -ryaml -e '
+    updates = YAML.load_file(ARGV.fetch(0)).fetch("updates")
+    abort "License checks must not enable Swift updates" if updates.any? { |update| update["package-ecosystem"] == "swift" }
+  ' "$target/.github/dependabot.yml"
+  synced_head="$(git -C "$target" rev-parse HEAD)"
+  sync_target
+  test "$(git -C "$target" rev-parse HEAD)" = "$synced_head"
+
+  git -C "$target" rm --quiet "$filename"
+  commit_fixture
+  sync_target
+  test ! -e "$target/.github/denied-licenses.txt"
+  test ! -e "$target/.github/workflows/licenses.yml"
+  test ! -e "$target/.github/scripts/check-licenses.sh"
+done
+
+prepare_target untracked-swift
+commit_fixture
+touch "$target/Package.swift" "$target/Package.resolved"
+sync_target
+test ! -e "$target/.github/denied-licenses.txt"
+test ! -e "$target/.github/workflows/licenses.yml"
+test ! -e "$target/.github/scripts/check-licenses.sh"
+
+prepare_target swift-and-npm
+touch "$target/Package.swift" "$target/package.json"
+commit_fixture
+sync_target
+test -s "$target/.github/workflows/licenses.yml"
+git -C "$target" rm --quiet Package.swift
+commit_fixture
+sync_target
+test -s "$target/.github/denied-licenses.txt"
+test -s "$target/.github/workflows/licenses.yml"
+test -s "$target/.github/scripts/check-licenses.sh"
+
+case_index=0
 for filename in 'lib/example.rb' 'types/example.rbi' 'tasks/example.rake' 'example.gemspec' \
                 'Gemfile' 'nested/Gemfile' 'Gemfile.lock' 'Rakefile' $'lib/with\nnewline.rb'; do
   case_index=$((case_index + 1))
