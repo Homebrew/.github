@@ -569,32 +569,31 @@ if brewsh_repository_path && repository_name != "brew.sh"
   end
 end
 
-# Update Gemfile.lock if it exists, based on the Ruby version.
+# Update Gemfile.lock if it exists, based on the Bundler and Ruby versions.
 #
 # We don't need to sync non-docs Gemfiles in Homebrew/brew because they are the source of truth.
-unless custom_ruby_version_repos.include?(repository_name)
-  target_gemfile_locks.each do |target_gemfile_lock|
-    is_docs_lock = target_gemfile_lock.dirname.basename.to_s == docs
+target_gemfile_locks.each do |target_gemfile_lock|
+  is_docs_lock = target_gemfile_lock.dirname.basename.to_s == docs
 
-    # Skip non-docs Gemfile.lock for brew since it's the source of truth.
-    next if repository_name == "brew" && !is_docs_lock
+  # Skip non-docs Gemfile.lock for brew since it's the source of truth.
+  next if repository_name == "brew" && !is_docs_lock
 
-    target_directory_path = target_gemfile_lock.dirname
-    Dir.chdir target_directory_path do
-      require "bundler"
-      bundler_version = Bundler::Definition.build(
-        homebrew_gemfile,
-        homebrew_gemfile_lock,
-        false,
-      ).locked_gems.bundler_version
-      puts "Running bundle update (with Bundler #{bundler_version})..."
-      Dir.mktmpdir do |tmpdir|
-        safe_system(
-          { "BUNDLE_PATH" => tmpdir },
-          "bundle", "update", "--ruby", "--bundler=#{bundler_version}", "--quiet",
-          out: "/dev/null"
-        )
-      end
+  target_directory_path = target_gemfile_lock.dirname
+  Dir.chdir target_directory_path do
+    require "bundler"
+    bundler_version = Bundler::Definition.build(
+      homebrew_gemfile,
+      homebrew_gemfile_lock,
+      false,
+    ).locked_gems.bundler_version
+    ruby_args = custom_ruby_version_repos.include?(repository_name) ? [] : ["--ruby"]
+    puts "Running bundle update (with Bundler #{bundler_version})..."
+    Dir.mktmpdir do |tmpdir|
+      safe_system(
+        { "BUNDLE_PATH" => tmpdir },
+        "bundle", "update", *ruby_args, "--bundler=#{bundler_version}", "--quiet",
+        out: "/dev/null"
+      )
     end
   end
 end
