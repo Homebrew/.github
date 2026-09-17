@@ -11,13 +11,20 @@ cd "$source_repository"
 mkdir "$workdir/bin"
 cat > "$workdir/bin/bundle" <<'SH'
 #!/bin/sh
-if [ -f Gemfile ] && grep -q '^ruby file: "\.ruby-version"$' Gemfile; then
-  echo 'Ruby requirement must be migrated before updating the lockfile.' >&2
-  exit 1
-fi
+printf '%s\n' "$@" >> "$BUNDLE_TEST_ARGS"
+for arg in "$@"; do
+  if [ "$arg" = --ruby ] && [ -f Gemfile ] && grep -q '^ruby file: "\.ruby-version"$' Gemfile; then
+    echo 'Ruby requirement must be migrated before updating the lockfile.' >&2
+    exit 1
+  fi
+done
 SH
 chmod +x "$workdir/bin/bundle"
 export PATH="$workdir/bin:$PATH"
+export BUNDLE_TEST_ARGS="$workdir/bundle-args"
+bundler_version="$(sed -n '/^BUNDLED WITH$/{n;s/^[[:space:]]*//;p;}' "$brew_repository/Library/Homebrew/Gemfile.lock")"
+printf '%s\n' update --ruby "--bundler=$bundler_version" --quiet > "$workdir/expected-ruby-bundle-args"
+printf '%s\n' update "--bundler=$bundler_version" --quiet > "$workdir/expected-bundle-args"
 
 prepare_target() {
   target="$workdir/$1"
@@ -37,6 +44,7 @@ commit_fixture() {
 }
 
 sync_target() {
+  : > "$BUNDLE_TEST_ARGS"
   if ! ruby .github/actions/sync/shared-config.rb "$target" "$brew_repository" > "$workdir/sync.log" 2>&1; then
     cat "$workdir/sync.log" >&2
     return 1
@@ -52,8 +60,10 @@ prepare_target no-ruby
 commit_fixture
 sync_target
 assert_no_ruby_config
+test ! -s "$BUNDLE_TEST_ARGS"
 sync_target
 assert_no_ruby_config
+test ! -s "$BUNDLE_TEST_ARGS"
 
 case_index=0
 for filename in 'lib/example.rb' 'types/example.rbi' 'tasks/example.rake' 'example.gemspec' \
@@ -67,6 +77,11 @@ for filename in 'lib/example.rb' 'types/example.rbi' 'tasks/example.rake' 'examp
   sync_target
   test -s "$target/.ruby-version"
   test -s "$target/.rubocop.yml"
+  if [[ "$filename" == Gemfile.lock ]]; then
+    cmp "$workdir/expected-ruby-bundle-args" "$BUNDLE_TEST_ARGS"
+  else
+    test ! -s "$BUNDLE_TEST_ARGS"
+  fi
 done
 
 prepare_target untracked-ruby
@@ -74,6 +89,7 @@ commit_fixture
 touch "$target/untracked.rb"
 sync_target
 assert_no_ruby_config
+test ! -s "$BUNDLE_TEST_ARGS"
 
 printf 'source "https://rubygems.org"\n\nruby file: ".ruby-version"\n\ngem "rake"\n' > "$workdir/original-gemfile"
 ruby_requirement="$(sed -n '/^ruby /p' "$brew_repository/docs/Gemfile")"
@@ -100,6 +116,11 @@ for layout in root root-with-lock docs shared-docs dangling-docs first-sync-docs
   fi
   commit_fixture
   sync_target
+  if [[ "$layout" != root ]]; then
+    cmp "$workdir/expected-ruby-bundle-args" "$BUNDLE_TEST_ARGS"
+  else
+    test ! -s "$BUNDLE_TEST_ARGS"
+  fi
   if [[ "$layout" == docs || "$layout" == dangling-docs || "$layout" == first-sync-docs ]]; then
     if [[ -e "$target/Gemfile" ]]; then
       echo 'Docs-only sync must not create a root Gemfile.' >&2
@@ -125,30 +146,55 @@ for layout in root root-with-lock docs shared-docs dangling-docs first-sync-docs
   synced_head="$(git -C "$target" rev-parse HEAD)"
   sync_target
   test "$(git -C "$target" rev-parse HEAD)" = "$synced_head"
+  if [[ "$layout" == root ]]; then
+    test ! -s "$BUNDLE_TEST_ARGS"
+  fi
 done
 
+printf 'source "https://rubygems.org"\n\ngem "rake"\n' > "$workdir/custom-gemfile"
 for repository in ruby-macho patchelf.rb; do
   prepare_target "$repository"
-  cp "$workdir/original-gemfile" "$target/Gemfile"
+  cp "$workdir/custom-gemfile" "$target/Gemfile"
   touch "$target/Gemfile.lock"
   commit_fixture
   sync_target
-  cmp "$workdir/original-gemfile" "$target/Gemfile"
+  cmp "$workdir/expected-bundle-args" "$BUNDLE_TEST_ARGS"
+  cmp "$workdir/custom-gemfile" "$target/Gemfile"
   test "$(cat "$target/.ruby-version")" = '4.0.6'
   test "$(cat "$target/.rubocop.yml")" = '# original configuration'
 done
+
+prepare_target custom-ruby-file/ruby-macho
+running_ruby_version="$(ruby -e 'print RUBY_VERSION')"
+printf '%s\n' "$running_ruby_version" > "$target/.ruby-version"
+cp "$workdir/original-gemfile" "$target/Gemfile"
+touch "$target/Gemfile.lock"
+commit_fixture
+sync_target
+cmp "$workdir/expected-bundle-args" "$BUNDLE_TEST_ARGS"
+cmp "$workdir/original-gemfile" "$target/Gemfile"
+test "$(cat "$target/.ruby-version")" = "$running_ruby_version"
+
+prepare_target brew-with-lockfiles/brew
+mkdir -p "$target/Library/Homebrew" "$target/docs"
+touch "$target/Gemfile.lock" "$target/Library/Homebrew/Gemfile.lock" "$target/docs/Gemfile.lock"
+commit_fixture
+sync_target
+cmp "$workdir/expected-ruby-bundle-args" "$BUNDLE_TEST_ARGS"
 
 prepare_target custom-ruby-requirement
 printf 'ruby ">= 3.3"\n' > "$target/Gemfile"
 commit_fixture
 sync_target
 test "$(cat "$target/Gemfile")" = 'ruby ">= 3.3"'
+test ! -s "$BUNDLE_TEST_ARGS"
 
 prepare_target ci-orchestrator-private
 commit_fixture
 sync_target
 test ! -e "$target/.ruby-version"
 test "$(cat "$target/.rubocop.yml")" = '# original configuration'
+test ! -s "$BUNDLE_TEST_ARGS"
 
 for repository in brew homebrew-core homebrew-cask BrewUI no-template-checks
 do
@@ -160,6 +206,7 @@ do
   done
   commit_fixture
   sync_target
+  test ! -s "$BUNDLE_TEST_ARGS"
   for workflow in check-issues check-prs
   do
     if [[ "${repository}" != no-template-checks ]]
