@@ -45,7 +45,7 @@ commit_fixture() {
 
 sync_target() {
   : > "$BUNDLE_TEST_ARGS"
-  if ! ruby .github/actions/sync/shared-config.rb "$target" "$brew_repository" > "$workdir/sync.log" 2>&1; then
+  if ! ruby .github/actions/sync/shared-config.rb "$target" "$brew_repository" "$@" > "$workdir/sync.log" 2>&1; then
     cat "$workdir/sync.log" >&2
     return 1
   fi
@@ -239,6 +239,36 @@ touch "$target/Gemfile.lock" "$target/Library/Homebrew/Gemfile.lock" "$target/do
 commit_fixture
 sync_target
 cmp "$workdir/expected-ruby-bundle-args" "$BUNDLE_TEST_ARGS"
+
+prepare_target private-docs/brew
+mkdir -p "$target/docs/nested" "$workdir/private/docs/nested"
+printf 'Public version\n' > "$target/docs/nested/Shared.md"
+printf 'Public only\n' > "$target/docs/Public.md"
+printf 'Public configuration\n' > "$target/docs/_config.yml"
+printf 'Private version\n' > "$workdir/private/docs/nested/Shared.md"
+printf 'Private only\n' > "$workdir/private/docs/Private.md"
+printf 'Private configuration\n' > "$workdir/private/docs/_config.yml"
+cp "$target/docs/nested/Shared.md" "$target/docs/nested/Shared.markdown"
+cp "$workdir/private/docs/nested/Shared.md" "$workdir/private/docs/nested/Shared.markdown"
+cp "$workdir/private/docs/Private.md" "$workdir/private/docs/Private.markdown"
+commit_fixture
+sync_target '' "$workdir/private"
+cmp "$workdir/private/docs/nested/Shared.md" "$target/docs/nested/Shared.md"
+cmp "$workdir/private/docs/nested/Shared.markdown" "$target/docs/nested/Shared.markdown"
+test "$(cat "$target/docs/Public.md")" = 'Public only'
+test "$(cat "$target/docs/_config.yml")" = 'Public configuration'
+test ! -e "$target/docs/Private.md"
+test ! -e "$target/docs/Private.markdown"
+synced_head="$(git -C "$target" rev-parse HEAD)"
+sync_target '' "$workdir/private"
+test "$(git -C "$target" rev-parse HEAD)" = "$synced_head"
+
+prepare_target forward/private
+mkdir "$target/docs"
+printf 'Private version\n' > "$target/docs/FAQ.md"
+commit_fixture
+sync_target
+cmp "$brew_repository/docs/FAQ.md" "$target/docs/FAQ.md"
 
 prepare_target custom-ruby-requirement
 printf 'ruby ">= 3.3"\n' > "$target/Gemfile"

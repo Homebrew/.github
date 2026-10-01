@@ -79,6 +79,9 @@ jobs:
       - name: Test shared configuration
         run: bash .github/actions/sync/test-shared-config.sh "$(brew --repository)"
 
+      - name: Test sync pull request reconciliation
+        run: bash .github/actions/sync/test-sync-pull-request.sh
+
       - name: Test template workflows
         run: bash .github/actions/sync/test-template-workflows.sh
 
@@ -122,6 +125,19 @@ jobs:
             bin
             script
 
+      - name: Clone private docs source repository
+        if: >-
+          matrix.repo == 'Homebrew/brew' &&
+          (github.event_name != 'pull_request' ||
+           (github.actor != 'dependabot[bot]' && !github.event.pull_request.head.repo.fork))
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: Homebrew/private
+          path: source/private
+          token: ${{ secrets.HOMEBREW_DOTGITHUB_WORKFLOW_TOKEN || github.token }}
+          persist-credentials: false
+          sparse-checkout: docs
+
       - name: Clone target repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -149,10 +165,16 @@ jobs:
         id: detect_changes
         env:
           TARGET: target/${{ matrix.repo }}
-        run: ./.github/actions/sync/shared-config.rb "${TARGET}" '/home/linuxbrew/.linuxbrew/Homebrew' source/brew.sh
+        run: |
+          private_args=()
+          if [[ -d source/private ]]
+          then
+            private_args+=(source/private)
+          fi
+          ./.github/actions/sync/shared-config.rb "${TARGET}" '/home/linuxbrew/.linuxbrew/Homebrew' source/brew.sh "${private_args[@]}"
 
-      - name: Create pull request
-        if: (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && steps.detect_changes.outputs.pull_request == 'true'
+      - name: Reconcile pull request
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         run: |
           cd "target/$GH_REPO"
           git checkout -b sync-shared-config
@@ -168,10 +190,17 @@ jobs:
               -f state=open |
               jq --exit-status 'length == 0'
           then
+            if [[ "$HAS_CHANGES" != true ]]
+            then
+              exit 0
+            fi
             git push --set-upstream --force origin sync-shared-config
             # We don't want backticks to be expanded.
             # shellcheck disable=SC2016
             gh pr create --head sync-shared-config --title "Synchronize shared configuration" --body 'This pull request was created automatically by the [`sync-shared-config`](https://github.com/Homebrew/.github/blob/HEAD/.github/actions/sync/shared-config.rb) workflow.'
+          elif [[ "$HAS_CHANGES" != true ]]
+          then
+            gh pr close sync-shared-config --delete-branch
           else
             git fetch origin sync-shared-config
             if ! git diff --no-ext-diff --quiet --exit-code origin/sync-shared-config
@@ -183,6 +212,7 @@ jobs:
           GH_REPO: ${{ matrix.repo }}
           GH_TOKEN: ${{ secrets.HOMEBREW_DOTGITHUB_WORKFLOW_TOKEN }}
           JOB_INDEX: ${{ strategy.job-index }}
+          HAS_CHANGES: ${{ steps.detect_changes.outputs.pull_request }}
   conclusion:
     needs: sync
     runs-on: ubuntu-slim

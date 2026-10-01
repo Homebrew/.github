@@ -26,8 +26,9 @@ def safe_system(*args)
 end
 # rubocop:enable Style/TopLevelMethodDefinition
 
-if ARGV[0].to_s.empty? || ARGV[1].to_s.empty? || ARGV[3]
-  abort "Usage: #{$PROGRAM_NAME} <target_directory_path> <homebrew_repository_path> [brewsh_repository_path]"
+if ARGV[0].to_s.empty? || ARGV[1].to_s.empty? || ARGV[4]
+  abort "Usage: #{$PROGRAM_NAME} <target_directory_path> <homebrew_repository_path> " \
+        "[brewsh_repository_path] [private_repository_path]"
 end
 
 target_directory = ARGV.fetch(0)
@@ -38,10 +39,17 @@ homebrew_repository_path = Pathname(ARGV.fetch(1)).expand_path
 brewsh_repository = ARGV.fetch(2, "")
 brewsh_repository_path = Pathname(brewsh_repository).expand_path unless brewsh_repository.empty?
 
+private_repository = ARGV.fetch(3, "")
+private_repository_path = Pathname(private_repository).expand_path unless private_repository.empty?
+
 if !target_directory_path.directory? || !homebrew_repository_path.directory?
-  abort "Usage: #{$PROGRAM_NAME} <target_directory_path> <homebrew_repository_path> [brewsh_repository_path]"
+  abort "Usage: #{$PROGRAM_NAME} <target_directory_path> <homebrew_repository_path> " \
+        "[brewsh_repository_path] [private_repository_path]"
 end
 abort "#{brewsh_repository_path} is not a directory" if brewsh_repository_path && !brewsh_repository_path.directory?
+if private_repository_path && !private_repository_path.directory?
+  abort "#{private_repository_path} is not a directory"
+end
 
 docs = "docs"
 ruby_version = ".ruby-version"
@@ -230,27 +238,34 @@ puts "Detecting changes…"
 
   case path
   when docs
-    # The docs templates are from the `brew` repository so we don't want to "sync" them.
-    next if repository_name == "brew"
+    source_docs = if repository_name == "brew"
+      next unless private_repository_path
+
+      private_repository_path/docs
+    else
+      homebrew_docs
+    end
 
     next if path == target_path.to_s
     next unless target_path.exist?
     next unless target_path.directory?
 
-    Find.find(homebrew_docs.to_s) do |docs_path|
+    Find.find(source_docs.to_s) do |docs_path|
       docs_path = Pathname(docs_path)
       docs_path_basename = docs_path.basename.to_s
       next Find.prune if docs_path_basename == "vendor"
       next if docs_path.directory?
       next if rejected_docs_basenames.include?(docs_path_basename)
 
-      docs_path_subpath = docs_path.to_s.delete_prefix("#{homebrew_docs}/")
+      docs_path_subpath = docs_path.to_s.delete_prefix("#{source_docs}/")
       next if docs_path_subpath.start_with?("_includes/", "_layouts/", "_sass/", "assets/css/", *shared_jekyll_paths)
       next if docs_path_subpath.start_with?("assets/img/") && !docs_path_subpath.start_with?("assets/img/docs/")
 
       target_docs_path = target_path/docs_path_subpath
+      markdown = [".md", ".markdown"].include?(docs_path.extname)
+      next if repository_name == "brew" && !markdown
       next if docs_path.extname == ".png"
-      next if docs_path.extname == ".md" && !target_docs_path.exist?
+      next if markdown && !target_docs_path.exist?
       next if target_docs_path.to_s.include?("vendor")
 
       target_docs_path.dirname.mkpath
