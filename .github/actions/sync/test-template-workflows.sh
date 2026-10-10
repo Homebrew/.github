@@ -132,4 +132,6 @@ ruby -rjson -ryaml <<'RUBY'
 end
 RUBY
 
+ruby .github/actions/sync/test-pr-descriptions.rb
+
 echo 'Template workflow checks passed.'

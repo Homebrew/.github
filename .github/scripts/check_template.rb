@@ -30,11 +30,26 @@ normalised_lines = lambda do |path|
 end
 
 case ARGV.fetch(0)
-when "pull-request"
+when "pull-request", "pull-request-description"
   repository = ARGV[4]
   if repository && !repository.empty? && ARGV.fetch(3, "").match?(/\ARevert ".+"\z/) &&
      File.read(ARGV.fetch(1), mode: "rb").match?(/\A\s*Reverts #{Regexp.escape(repository)}#\d+\r?$/)
     puts true
+    exit
+  end
+
+  if ARGV.fetch(0) == "pull-request-description"
+    # Compare visible text with the whole template, including prose and tables.
+    # Ticking boxes or adding hidden comments does not describe the change.
+    description_lines = lambda do |path|
+      lines.call(path).join("\n").gsub(/<!--.*?(?:-->|\z)/m, "").lines.filter_map do |line|
+        line = line.strip.gsub(/\s+/, " ").sub(CHECKBOX_MARKER, NORMALISED_CHECKBOX_MARKER)
+        next if line.empty? || line.match?(MARKDOWN_HORIZONTAL_LINE)
+
+        line
+      end
+    end
+    puts (description_lines.call(ARGV.fetch(1)) - description_lines.call(ARGV.fetch(2))).any?
     exit
   end
 
@@ -100,6 +115,7 @@ when "issue"
   end
 else
   warn "Usage: check_template.rb pull-request BODY TEMPLATE [TITLE REPOSITORY]"
+  warn "       check_template.rb pull-request-description BODY TEMPLATE [TITLE REPOSITORY]"
   warn "       check_template.rb issue BODY TEMPLATE_DIRECTORY REPOSITORY"
   exit 1
 end
