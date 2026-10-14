@@ -1,0 +1,6 @@
+CODEOWNERS                                    @Homebrew/lead-maintainers
+/.coderabbit*                                 @Homebrew/lead-maintainers
+/coderabbit*                                  @Homebrew/lead-maintainers
+/.github/actions/sync/codeowners.template     @Homebrew/lead-maintainers
+/.github/actions/sync/coderabbit.template.ts  @Homebrew/lead-maintainers
+/.github/actions/sync/shared-config.rb        @Homebrew/lead-maintainers

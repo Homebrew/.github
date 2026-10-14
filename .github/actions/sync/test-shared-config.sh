@@ -56,6 +56,41 @@ assert_no_ruby_config() {
   test ! -e "$target/.rubocop.yml"
 }
 
+assert_sync_fails_without_commit() {
+  if ruby .github/actions/sync/shared-config.rb "$target" "$brew_repository" > "$workdir/sync.log" 2>&1; then
+    echo "Expected the sync of $target to fail." >&2
+    exit 1
+  fi
+  grep -q -F "$1" "$workdir/sync.log"
+  test "$(git -C "$target" log -1 --format=%s)" = Fixture
+}
+
+assert_coderabbit_config() {
+  node - "$target/.coderabbit.config.ts" "$1" <<'JS'
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const vm = require("node:vm");
+const source = fs.readFileSync(process.argv[2], "utf8");
+const optedIn = process.argv[3] === "true";
+const sandbox = { defineConfig: (config) => config };
+vm.runInNewContext(source
+  .replace(/^import \{ defineConfig \} from "@coderabbitai\/config"\n/m, "")
+  .replace("export default ", "globalThis.config = "), sandbox);
+
+for (const fullName of ["Homebrew/advisory-database", "homebrew/advisory-database", "Homebrew/other"]) {
+  for (const author of ["p-linnane", "P-Linnane", "P-LINNANE", "someone-else", null]) {
+    const config = sandbox.config({ repo: { fullName }, pr: author === null ? null : { author } });
+    const expected = optedIn && author !== null && author.toLowerCase() === "p-linnane";
+    assert.equal(config.reviews.request_changes_workflow, expected, `${fullName}: ${author}`);
+    assert.equal(config.inheritance, true);
+    assert.equal(Object.hasOwn(config.reviews, "allow_author_approval"), false);
+  }
+}
+assert.ok(!source.includes("advisory-database"), "Repository selection belongs in the sync script");
+if (!optedIn) assert.ok(!source.includes("p-linnane"), "Do not distribute another repository's author list");
+JS
+}
+
 prepare_target no-ruby
 commit_fixture
 sync_target
@@ -64,6 +99,103 @@ test ! -s "$BUNDLE_TEST_ARGS"
 sync_target
 assert_no_ruby_config
 test ! -s "$BUNDLE_TEST_ARGS"
+
+coderabbit_config='.coderabbit.config.ts'
+assert_coderabbit_config false
+cp "$target/$coderabbit_config" "$workdir/expected-coderabbit-config"
+codeowners='.github/CODEOWNERS'
+{
+  printf '%s\n' "# This file is synced from the \`.github\` repository, do not modify it directly."
+  cat .github/actions/sync/codeowners.template
+} > "$workdir/expected-codeowners"
+
+# Install the configuration and its code owners even when the repository has no Ruby files.
+cmp "$workdir/expected-coderabbit-config" "$target/$coderabbit_config"
+cmp "$workdir/expected-codeowners" "$target/$codeowners"
+
+# Replace a repository-specific configuration and an outdated synced CODEOWNERS and keep subsequent syncs idempotent.
+prepare_target advisory-database
+printf 'export default { inheritance: false }\n' > "$target/$coderabbit_config"
+mkdir "$target/.github"
+head -1 "$workdir/expected-codeowners" > "$target/$codeowners"
+printf '* @Homebrew/maintainers\n' >> "$target/$codeowners"
+commit_fixture
+sync_target
+assert_coderabbit_config true
+cp "$target/$coderabbit_config" "$workdir/expected-opted-in-coderabbit-config"
+cmp "$workdir/expected-codeowners" "$target/$codeowners"
+synced_head="$(git -C "$target" rev-parse HEAD)"
+sync_target
+test "$(git -C "$target" rev-parse HEAD)" = "$synced_head"
+
+# Repository selection is case-insensitive and happens before writing the configuration.
+prepare_target mixed-case/Advisory-Database
+commit_fixture
+sync_target
+assert_coderabbit_config true
+cmp "$workdir/expected-opted-in-coderabbit-config" "$target/$coderabbit_config"
+
+# Excluded repositories must neither gain these files nor have existing ones changed.
+printf 'export default { reviews: { request_changes_workflow: false } }\n' > "$workdir/custom-coderabbit-config"
+printf '.coderabbit.config.ts @Homebrew/lead-maintainers\n' > "$workdir/custom-codeowners"
+for repository in brew homebrew-core homebrew-cask .github; do
+  prepare_target "coderabbit-excluded/$repository"
+  cp "$workdir/custom-codeowners" "$target/CODEOWNERS"
+  commit_fixture
+  sync_target
+  test ! -e "$target/$coderabbit_config"
+  test ! -e "$target/$codeowners"
+  cmp "$workdir/custom-codeowners" "$target/CODEOWNERS"
+  cp "$workdir/custom-coderabbit-config" "$target/$coderabbit_config"
+  commit_fixture
+  sync_target
+  cmp "$workdir/custom-coderabbit-config" "$target/$coderabbit_config"
+done
+
+# Keep a repository's own CODEOWNERS wherever GitHub reads it from, as long as it has the synced entries.
+{
+  printf 'docs/Support-Tiers.md  @Homebrew/lead-maintainers @MikeMcQuaid\n'
+  grep -v '^#' .github/actions/sync/codeowners.template | sed 's/$/ @MikeMcQuaid/'
+} > "$workdir/own-codeowners"
+{
+  grep -v 'coderabbit\*' "$workdir/own-codeowners"
+  printf '/.coderabbit*  @Homebrew/maintainers\n'
+} > "$workdir/incomplete-codeowners"
+for own_codeowners in "$codeowners" CODEOWNERS docs/CODEOWNERS; do
+  prepare_target "own-codeowners-${own_codeowners//\//-}"
+  mkdir -p "$(dirname "$target/$own_codeowners")"
+  cp "$workdir/own-codeowners" "$target/$own_codeowners"
+  commit_fixture
+  sync_target
+  cmp "$workdir/own-codeowners" "$target/$own_codeowners"
+  cmp "$workdir/expected-coderabbit-config" "$target/$coderabbit_config"
+  if [[ "$own_codeowners" != "$codeowners" ]]; then
+    test ! -e "$target/$codeowners"
+  fi
+
+  cp "$workdir/incomplete-codeowners" "$target/$own_codeowners"
+  commit_fixture
+  assert_sync_fails_without_commit "$own_codeowners is missing these entries"
+  grep -q -F '/.coderabbit*  @Homebrew/lead-maintainers' "$workdir/sync.log"
+  grep -q -F '/coderabbit*   @Homebrew/lead-maintainers' "$workdir/sync.log"
+  cmp "$workdir/incomplete-codeowners" "$target/$own_codeowners"
+done
+
+# GitHub would ignore a second CODEOWNERS, so the sync must fail without committing.
+prepare_target codeowners-ignored-root
+mkdir "$target/.github"
+cp "$workdir/own-codeowners" "$target/$codeowners"
+cp "$workdir/own-codeowners" "$target/CODEOWNERS"
+commit_fixture
+assert_sync_fails_without_commit "GitHub ignores CODEOWNERS in favour of $codeowners"
+
+prepare_target codeowners-ignored-docs
+mkdir "$target/docs"
+cp "$workdir/own-codeowners" "$target/CODEOWNERS"
+cp "$workdir/own-codeowners" "$target/docs/CODEOWNERS"
+commit_fixture
+assert_sync_fails_without_commit "GitHub ignores docs/CODEOWNERS in favour of CODEOWNERS"
+test ! -e "$target/$codeowners"
 
 case_index=0
 for filename in 'Package.swift' 'Package.resolved' 'Tools/Lint/Package.swift' 'Tools/Lint/Package.resolved' \
