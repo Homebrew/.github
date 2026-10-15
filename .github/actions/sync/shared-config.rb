@@ -4,6 +4,7 @@
 require "English"
 require "fileutils"
 require "find"
+require "json"
 require "open3"
 # Required when this script runs outside the Homebrew style environment.
 # rubocop:disable Lint/RedundantRequireStatement
@@ -54,6 +55,12 @@ end
 docs = "docs"
 ruby_version = ".ruby-version"
 rubocop_yaml = ".rubocop.yml"
+coderabbit_config_ts = ".coderabbit.config.ts"
+codeowners = ".github/CODEOWNERS"
+codeowners_template = ".github/actions/sync/codeowners.template"
+codeowners_header = "# This file is synced from the `.github` repository, do not modify it directly.\n"
+# GitHub uses the first of these that exists and ignores the others.
+codeowners_paths = [codeowners, "CODEOWNERS", "docs/CODEOWNERS"].freeze
 vale_ini = ".vale.ini"
 dependabot_template_yaml = ".github/actions/sync/dependabot.template.yml"
 dependabot_yaml = ".github/dependabot.yml"
@@ -177,6 +184,19 @@ custom_rubocop_repos = %w[
   patchelf.rb
   ruby-macho
 ].freeze
+# These repositories don't get the synced CodeRabbit configuration or CODEOWNERS.
+# brew is excluded for now and homebrew-core and homebrew-cask permanently.
+# .github is excluded because it can sync changes to other repositories.
+coderabbit_excluded_repositories = %w[
+  brew
+  homebrew-core
+  homebrew-cask
+  .github
+].freeze
+# Each entry is an approved opt-in for that repository. Keep repository names lowercase.
+coderabbit_auto_approve_authors = {
+  "advisory-database" => ["p-linnane"],
+}.freeze
 template_check_repositories = %w[
   BrewUI
   brew
@@ -214,6 +234,8 @@ puts "Detecting changes…"
   vale_ini,
   "Gemfile",
   rubocop_yaml,
+  coderabbit_config_ts,
+  codeowners,
   dependabot_yaml,
   *license_check_paths,
   check_template_rb,
@@ -334,6 +356,55 @@ puts "Detecting changes…"
       "# This file is synced from `Homebrew/brew` by the `.github` repository, do not modify it directly.\n" \
       "#{homebrew_rubocop_config}\n",
     )
+  when coderabbit_config_ts
+    next if coderabbit_excluded_repositories.include?(repository_name)
+
+    authors = coderabbit_auto_approve_authors.fetch(repository_name.downcase, []).map(&:downcase)
+    contents = format(
+      Pathname(".github/actions/sync/coderabbit.template.ts").read,
+      auto_approve_authors: authors.to_json,
+    )
+    FileUtils.rm_f target_path
+    target_path.write(
+      "// This file is synced from the `.github` repository, do not modify it directly.\n" \
+      "#{contents}",
+    )
+  when codeowners
+    next if coderabbit_excluded_repositories.include?(repository_name)
+
+    # GitHub reads only the first CODEOWNERS it finds: .github/, the root, then docs/.
+    # Reject duplicates so maintainers do not edit an ownership file GitHub ignores.
+    used_codeowners, *ignored_codeowners = codeowners_paths.select { |other| (target_directory_path/other).exist? }
+    if ignored_codeowners.any?
+      abort "#{repository_name}: GitHub ignores #{ignored_codeowners.join(" and ")} in favour of #{used_codeowners}."
+    end
+
+    template_contents = Pathname(codeowners_template).read
+    used_contents = (target_directory_path/used_codeowners).read if used_codeowners
+    if used_contents && !used_contents.start_with?(codeowners_header)
+      # Preserve repository-owned rules instead of installing a .github/CODEOWNERS that would shadow them.
+      # The shared entries make lead maintainers own CODEOWNERS, so they must approve any later override.
+      entries = used_contents.lines.map(&:split)
+      missing_entries = template_contents.lines.filter_map do |line|
+        next if line.start_with?("#")
+
+        pattern, *owners = line.split
+        next if pattern.nil?
+        next if entries.any? do |entry_pattern, *entry_owners|
+          entry_pattern == pattern && (owners - entry_owners).empty?
+        end
+
+        line.strip
+      end
+      if missing_entries.any?
+        abort "#{repository_name}: #{used_codeowners} is missing these entries from #{codeowners_template}:\n" \
+              "#{missing_entries.join("\n")}"
+      end
+      next
+    end
+
+    FileUtils.rm_f target_path
+    target_path.write("#{codeowners_header}#{template_contents}")
   when dependabot_yaml, denied_licenses_txt, licenses_workflow_yaml, check_licenses_sh, actionlint_workflow_yaml,
        check_issues_workflow_yaml, check_prs_workflow_yaml, stale_issues_and_prs_workflow_yaml,
        codeql_extensions_homebrew_actions_yml
