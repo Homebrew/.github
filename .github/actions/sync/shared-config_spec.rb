@@ -93,11 +93,15 @@ module SharedConfigHelpers
     successful_command("node", "-", (directory/coderabbit_config).to_s, opted_in.to_s, stdin_data: <<~'JS')
       const assert = require("node:assert/strict");
       const fs = require("node:fs");
+      const { stripTypeScriptTypes } = require("node:module");
       const vm = require("node:vm");
       const source = fs.readFileSync(process.argv[2], "utf8");
+      // Type stripping cannot catch Set<never> inference for an empty author list.
+      assert.ok(source.includes("const autoApproveAuthors = new Set<string>("),
+        "Keep author sets explicitly typed so empty lists accept string lookups");
       const optedIn = process.argv[3] === "true";
       const sandbox = { defineConfig: (config) => config };
-      vm.runInNewContext(source
+      vm.runInNewContext(stripTypeScriptTypes(source)
         .replace(/^import \{ defineConfig \} from "@coderabbitai\/config"\n/m, "")
         .replace("export default ", "globalThis.config = "), sandbox);
 
