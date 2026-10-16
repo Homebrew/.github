@@ -1,7 +1,7 @@
 import { defineConfig } from "@coderabbitai/config"
 
 // Approved authors for this repository, populated by the shared configuration sync.
-const autoApproveAuthors = new Set(%<auto_approve_authors>s)
+const autoApproveAuthors = new Set<string>(%<auto_approve_authors>s)
 
 export default defineConfig((ctx) => ({
   inheritance: true,
