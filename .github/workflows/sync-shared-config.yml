@@ -68,7 +68,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - run: brew install-bundler-gems --groups=style
+      - run: brew install-bundler-gems --groups=style,tests
         env:
           HOMEBREW_DEVELOPER: 1
 
@@ -77,7 +77,13 @@ jobs:
           HOMEBREW_DEVELOPER: 1
 
       - name: Test shared configuration
-        run: bash .github/actions/sync/test-shared-config.sh "$(brew --repository)"
+        run: |
+          BREW_REPOSITORY="$(brew --repository)"
+          export BREW_REPOSITORY
+          export BUNDLE_GEMFILE="${BREW_REPOSITORY}/Library/Homebrew/Gemfile"
+          bundle exec rspec .github/actions/sync/shared-config_spec.rb
+        env:
+          BUNDLE_WITH: style:tests
 
       - name: Test sync pull request reconciliation
         run: bash .github/actions/sync/test-sync-pull-request.sh
