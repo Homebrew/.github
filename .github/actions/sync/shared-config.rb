@@ -15,9 +15,11 @@ require "yaml"
 
 # This makes sense for a standalone script.
 # rubocop:disable Style/TopLevelMethodDefinition
+# rubocop:disable Lint/DuplicateMethods
 def git(*args)
   safe_system("git", *args)
 end
+# rubocop:enable Lint/DuplicateMethods
 
 def safe_system(*args)
   system(*args)
