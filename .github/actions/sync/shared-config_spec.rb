@@ -47,6 +47,10 @@ module SharedConfigHelpers
     successful_command("git", "-C", directory.to_s, *args).chomp
   end
 
+  def tracked_templates(pattern)
+    git("ls-files").lines(chomp: true).grep(pattern)
+  end
+
   def commit_fixture(directory: target)
     git("add", "--all", directory:)
     git("commit", "--quiet", "--message", "Fixture", directory:)
@@ -162,6 +166,19 @@ RSpec.describe "shared configuration sync" do
     entries = own_codeowners.lines.reject { |line| line.include?("coderabbit*") }.join
     "#{entries}/.coderabbit*  @Homebrew/maintainers\n"
   end
+  let(:pull_request_template) { ".github/PULL_REQUEST_TEMPLATE.md" }
+  let(:expected_templates) do
+    {
+      pull_request_template               => "pull_request.template.md",
+      ".github/ISSUE_TEMPLATE/bug.yml"    => "issue_bug.template.yml",
+      ".github/ISSUE_TEMPLATE/config.yml" => "issue_config.template.yml",
+    }.transform_values do |source|
+      format((source_repository/".github/actions/sync/#{source}").read,
+             repository: "Homebrew/#{File.basename(repository)}")
+    end
+  end
+  let(:issue_templates) { expected_templates.keys - [pull_request_template] }
+  let(:own_template) { "- [ ] Have you run `make test`?\n" }
   let(:original_gemfile) { "source \"https://rubygems.org\"\n\nruby file: \".ruby-version\"\n\ngem \"rake\"\n" }
   let(:custom_gemfile) { "source \"https://rubygems.org\"\n\ngem \"rake\"\n" }
   let(:expected_gemfile) do
@@ -312,6 +329,130 @@ RSpec.describe "shared configuration sync" do
       if used != codeowners
         expect(target/codeowners).not_to exist
       end
+    end
+  end
+
+  it "installs issue and pull request templates linking to the repository, repeatedly" do
+    commit_fixture
+    sync_target
+    expected_templates.each { |path, contents| expect((target/path).read).to eq(contents) }
+    expect((target/pull_request_template).read).to include("https://github.com/Homebrew/no-ruby/pulls")
+    expect((target/".github/ISSUE_TEMPLATE/bug.yml").read).to include("https://github.com/Homebrew/no-ruby/issues")
+    expect_idempotent_sync
+  end
+
+  it "keeps an installed template after the repository edits it" do
+    commit_fixture
+    sync_target
+    write pull_request_template, own_template
+    commit_fixture
+    expect_idempotent_sync
+    expect((target/pull_request_template).read).to eq(own_template)
+  end
+
+  it "removes an unedited pull request template once the repository adds its own elsewhere" do
+    commit_fixture
+    sync_target
+    write "PULL_REQUEST_TEMPLATE.md", own_template
+    commit_fixture
+    sync_target
+    expect(target/pull_request_template).not_to exist
+    expect(tracked_templates(/pull_request_template/i)).to eq(["PULL_REQUEST_TEMPLATE.md"])
+    expect_idempotent_sync
+  end
+
+  it "keeps the pull request template when the repository's own one is deleted but not committed" do
+    commit_fixture
+    sync_target
+    write "PULL_REQUEST_TEMPLATE.md", own_template
+    commit_fixture
+    FileUtils.rm target/"PULL_REQUEST_TEMPLATE.md"
+    sync_target
+    expect((target/pull_request_template).read).to eq(expected_templates.fetch(pull_request_template))
+  end
+
+  it "installs issue templates when the last one is deleted but not committed" do
+    write ".github/ISSUE_TEMPLATE/feature.yml", own_template
+    commit_fixture
+    FileUtils.rm target/".github/ISSUE_TEMPLATE/feature.yml"
+    sync_target
+    issue_templates.each do |issue_template|
+      expect((target/issue_template).read).to eq(expected_templates.fetch(issue_template))
+    end
+  end
+
+  {
+    ".github/PULL_REQUEST_TEMPLATE.md"   => /pull_request_template/i,
+    "PULL_REQUEST_TEMPLATE.md"           => /pull_request_template/i,
+    ".github/ISSUE_TEMPLATE/feature.yml" => /issue_template/i,
+  }.each do |path, pattern|
+    it "keeps an uncommitted #{path} without adding a shared template beside it" do
+      commit_fixture
+      write path, own_template
+      sync_target
+      expect((target/path).read).to eq(own_template)
+      expect(tracked_templates(pattern)).to eq([path])
+    end
+  end
+
+  %w[
+    .github/PULL_REQUEST_TEMPLATE.md
+    .github/pull_request_template.md
+    PULL_REQUEST_TEMPLATE.md
+    docs/pull_request_template.md
+    .github/PULL_REQUEST_TEMPLATE/bug_fix.md
+  ].each do |path|
+    it "keeps a repository's own pull request template at #{path} and installs issue templates" do
+      write path, own_template
+      commit_fixture
+      sync_target
+      expect((target/path).read).to eq(own_template)
+      expect(tracked_templates(/pull_request_template/i)).to eq([path])
+      issue_templates.each do |issue_template|
+        expect((target/issue_template).read).to eq(expected_templates.fetch(issue_template))
+      end
+    end
+  end
+
+  %w[
+    .github/ISSUE_TEMPLATE/feature.yml
+    .github/ISSUE_TEMPLATE/config.yml
+    ISSUE_TEMPLATE/bug.md
+    docs/ISSUE_TEMPLATE/bug.md
+  ].each do |path|
+    it "keeps a repository's own issue template at #{path} and installs the pull request template" do
+      write path, own_template
+      commit_fixture
+      sync_target
+      expect((target/path).read).to eq(own_template)
+      expect(tracked_templates(/issue_template/i)).to eq([path])
+      expect((target/pull_request_template).read).to eq(expected_templates.fetch(pull_request_template))
+    end
+  end
+
+  %w[
+    .github/issue_template.md
+    ISSUE_TEMPLATE.md
+    docs/ISSUE_TEMPLATE.md
+  ].each do |path|
+    it "installs issue templates alongside the retired single-file template at #{path}" do
+      write path, own_template
+      commit_fixture
+      sync_target
+      expect((target/path).read).to eq(own_template)
+      issue_templates.each do |issue_template|
+        expect((target/issue_template).read).to eq(expected_templates.fetch(issue_template))
+      end
+    end
+  end
+
+  context "with the .github repository" do
+    let(:repository) { "source/.github" }
+
+    it "does not install templates" do
+      commit_fixture
+      sync_target
+      expected_templates.each_key { |path| expect(target/path).not_to exist }
     end
   end
 
