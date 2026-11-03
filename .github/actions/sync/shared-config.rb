@@ -70,8 +70,9 @@ template_sources = {
   ".github/ISSUE_TEMPLATE/config.yml" => ".github/actions/sync/issue_config.template.yml",
 }.freeze
 # GitHub reads templates from any of these locations, case-insensitively.
+# It no longer reads single-file `ISSUE_TEMPLATE.md` issue templates, only `ISSUE_TEMPLATE/` directories.
 existing_pull_request_template = %r{\A(?:\.github/|docs/)?pull_request_template(?:\.\w+)?(?:/|\z)}i
-existing_issue_template = %r{\A(?:\.github/|docs/)?issue_template(?:\.\w+)?(?:/|\z)}i
+existing_issue_template = %r{\A(?:\.github/|docs/)?issue_template/}i
 vale_ini = ".vale.ini"
 dependabot_template_yaml = ".github/actions/sync/dependabot.template.yml"
 dependabot_yaml = ".github/dependabot.yml"
@@ -465,10 +466,18 @@ puts "Detecting changes…"
     next if repository_name == ".github"
 
     # Install templates once and then leave them to the repository, like any template it already has.
-    existing_template = (path == pull_request_template) ? existing_pull_request_template : existing_issue_template
-    next if tracked_files.any?(existing_template)
+    contents = format(Pathname(template_sources.fetch(path)).read, repository: "Homebrew/#{repository_name}")
+    if path == pull_request_template
+      own_templates = tracked_files.grep(existing_pull_request_template) - [path]
+      # GitHub prefers `.github/`, so remove an unedited synced template once the repository adds its own elsewhere.
+      FileUtils.rm_f target_path if own_templates.any? && target_path.file? && target_path.read == contents
+      next if own_templates.any?
+    elsif tracked_files.any?(existing_issue_template)
+      next
+    end
+    next if target_path.exist?
 
-    target_path.write(format(Pathname(template_sources.fetch(path)).read, repository: "Homebrew/#{repository_name}"))
+    target_path.write(contents)
   else
     next if path == target_path.to_s
 

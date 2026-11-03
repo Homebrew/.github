@@ -350,6 +350,24 @@ RSpec.describe "shared configuration sync" do
     expect((target/pull_request_template).read).to eq(own_template)
   end
 
+  it "removes an unedited pull request template once the repository adds its own elsewhere" do
+    commit_fixture
+    sync_target
+    write "PULL_REQUEST_TEMPLATE.md", own_template
+    commit_fixture
+    sync_target
+    expect(target/pull_request_template).not_to exist
+    expect(tracked_templates(/pull_request_template/i)).to eq(["PULL_REQUEST_TEMPLATE.md"])
+    expect_idempotent_sync
+  end
+
+  it "does not overwrite an uncommitted template" do
+    commit_fixture
+    write pull_request_template, own_template
+    sync_target
+    expect((target/pull_request_template).read).to eq(own_template)
+  end
+
   %w[
     .github/PULL_REQUEST_TEMPLATE.md
     .github/pull_request_template.md
@@ -372,9 +390,8 @@ RSpec.describe "shared configuration sync" do
   %w[
     .github/ISSUE_TEMPLATE/feature.yml
     .github/ISSUE_TEMPLATE/config.yml
-    .github/issue_template.md
-    ISSUE_TEMPLATE.md
-    docs/ISSUE_TEMPLATE.md
+    ISSUE_TEMPLATE/bug.md
+    docs/ISSUE_TEMPLATE/bug.md
   ].each do |path|
     it "keeps a repository's own issue template at #{path} and installs the pull request template" do
       write path, own_template
@@ -383,6 +400,22 @@ RSpec.describe "shared configuration sync" do
       expect((target/path).read).to eq(own_template)
       expect(tracked_templates(/issue_template/i)).to eq([path])
       expect((target/pull_request_template).read).to eq(expected_templates.fetch(pull_request_template))
+    end
+  end
+
+  %w[
+    .github/issue_template.md
+    ISSUE_TEMPLATE.md
+    docs/ISSUE_TEMPLATE.md
+  ].each do |path|
+    it "installs issue templates alongside the retired single-file template at #{path}" do
+      write path, own_template
+      commit_fixture
+      sync_target
+      expect((target/path).read).to eq(own_template)
+      issue_templates.each do |issue_template|
+        expect((target/issue_template).read).to eq(expected_templates.fetch(issue_template))
+      end
     end
   end
 
