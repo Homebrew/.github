@@ -34,11 +34,13 @@ Security issues are defects in Homebrew-maintained code or infrastructure that l
 
 Homebrew is designed around a single-user machine security boundary. Homebrew assumes the user running `brew` controls and trusts their own account, Homebrew prefix, cache, configuration, taps and shell environment. Shared multi-user Homebrew installations are unsupported and outside Homebrew's security boundary.
 
+Running any `brew` command with `sudo` trusts the Homebrew prefix owner and anyone else who can modify Homebrew's code to run arbitrary code as root. They can change `bin/brew` or the code it loads before a later invocation with `sudo`, including before command-specific checks or switching users. This trust also applies to commands that only display information or subsequently run as another account. For example, if the owner adds `rm -rf /path/to/data` to `bin/brew`, the next `sudo brew ...` will run that deletion as root. Changing ownership of selected paths does not remove this trust in accounts that can still modify Homebrew itself.
+
 Homebrew necessarily executes third-party software chosen by the user. Formulae and casks may run upstream build systems, installers and post-install commands. External taps, mirrors, wrappers and repositories configured by the user are trusted at the level the user granted them.
 
 Installing from a tap is a trust decision for that tap. A tap can provide formulae, casks, external commands and tap metadata that install or run software, so using a tap means trusting its authors for those files.
 
-Homebrew's boundary for upstream software is the `brew`-managed install, post-install and test execution path. Escapes from Homebrew's intended sandboxing or credential filtering in those phases may be security issues. Once a user runs installed upstream software directly, sandboxing and trusting that software is the user's responsibility.
+Homebrew's boundary for upstream software is the `brew`-managed install, post-install and test execution path. Escapes from Homebrew's intended sandboxing or credential filtering in those phases may be security issues. Once a user chooses to run installed upstream software, directly or through a Homebrew command, sandboxing and trusting that software is the user's responsibility.
 
 ## In Scope
 
@@ -90,7 +92,7 @@ Security vulnerabilities in software used by but not written by Homebrew are not
 
 ### Local Account or Administrator Control
 
-A report requiring the attacker to control the same user account, administrator account, shell startup files, `PATH`, Homebrew prefix, cache, lock files or repository checkout is not a security issue. Homebrew cannot defend against code already running with the user's privileges.
+A report requiring the attacker to control the same user account, administrator account, shell startup files, `PATH`, Homebrew prefix, cache, lock files or repository checkout is not a security issue. Homebrew cannot defend against code already running with the user's privileges. Running `brew` with `sudo` explicitly extends trust in the prefix owner and anyone else who can modify Homebrew's code to root privileges.
 
 ### Unsupported Configurations
 
@@ -99,6 +101,8 @@ Bugs that only affect Tier 2, Tier 3 or unsupported configurations described in 
 ### User-Run Upstream Software
 
 Bugs in software after Homebrew has installed it are not Homebrew security issues. Homebrew may sandbox or filter credentials while it runs install, post-install and test steps, but users are responsible for deciding whether, how and where to run installed software afterwards.
+
+This includes launching software through Homebrew commands or registering it to run automatically. Running package-provided commands with the privileges the user requested, including root, is not a Homebrew security vulnerability by itself. Homebrew's build sandbox does not confine software run this way.
 
 ### Local Denial of Service and Resource Exhaustion
 
