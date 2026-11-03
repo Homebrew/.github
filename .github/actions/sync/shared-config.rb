@@ -63,6 +63,12 @@ codeowners_template = ".github/actions/sync/codeowners.template"
 codeowners_header = "# This file is synced from the `.github` repository, do not modify it directly.\n"
 # GitHub uses the first of these that exists and ignores the others.
 codeowners_paths = [codeowners, "CODEOWNERS", "docs/CODEOWNERS"].freeze
+pull_request_template = ".github/PULL_REQUEST_TEMPLATE.md"
+template_sources = {
+  pull_request_template               => ".github/actions/sync/pull_request.template.md",
+  ".github/ISSUE_TEMPLATE/bug.yml"    => ".github/actions/sync/issue_bug.template.yml",
+  ".github/ISSUE_TEMPLATE/config.yml" => ".github/actions/sync/issue_config.template.yml",
+}.freeze
 vale_ini = ".vale.ini"
 dependabot_template_yaml = ".github/actions/sync/dependabot.template.yml"
 dependabot_yaml = ".github/dependabot.yml"
@@ -205,6 +211,22 @@ template_check_repositories = %w[
   homebrew-core
   homebrew-cask
 ].freeze
+# These repositories keep their own, more specific templates instead of the synced ones.
+custom_pull_request_template_repositories = %w[
+  BrewUI
+  brew
+  formulae.brew.sh
+  homebrew-cask
+  homebrew-core
+].freeze
+custom_issue_template_repositories = %w[
+  BrewUI
+  brew
+  formulae.brew.sh
+  homebrew-cask
+  homebrew-core
+  install
+].freeze
 rejected_docs_basenames = %w[
   _config.yml
   CNAME
@@ -238,6 +260,7 @@ puts "Detecting changes…"
   rubocop_yaml,
   coderabbit_config_ts,
   codeowners,
+  *template_sources.keys,
   dependabot_yaml,
   *license_check_paths,
   check_template_rb,
@@ -450,6 +473,24 @@ puts "Detecting changes…"
     next unless target_path.exist?
 
     git "-C", target_directory, "rm", path
+  when *template_sources.keys
+    # A template here would become the default for every repository without one, including unsynced ones.
+    next if repository_name == ".github"
+
+    custom_repositories = if path == pull_request_template
+      custom_pull_request_template_repositories
+    else
+      custom_issue_template_repositories
+    end
+    next if custom_repositories.include?(repository_name)
+
+    contents = format(Pathname(template_sources.fetch(path)).read, repository: "Homebrew/#{repository_name}")
+    # Pull request descriptions start with the template, so it can't carry the synced header.
+    if path != pull_request_template
+      contents = "# This file is synced from the `.github` repository, do not modify it directly.\n#{contents}"
+    end
+    FileUtils.rm_f target_path
+    target_path.write(contents)
   else
     next if path == target_path.to_s
 

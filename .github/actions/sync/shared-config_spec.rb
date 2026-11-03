@@ -162,6 +162,20 @@ RSpec.describe "shared configuration sync" do
     entries = own_codeowners.lines.reject { |line| line.include?("coderabbit*") }.join
     "#{entries}/.coderabbit*  @Homebrew/maintainers\n"
   end
+  let(:pull_request_template) { ".github/PULL_REQUEST_TEMPLATE.md" }
+  let(:expected_templates) do
+    {
+      pull_request_template               => "pull_request.template.md",
+      ".github/ISSUE_TEMPLATE/bug.yml"    => "issue_bug.template.yml",
+      ".github/ISSUE_TEMPLATE/config.yml" => "issue_config.template.yml",
+    }.to_h do |path, source|
+      contents = format((source_repository/".github/actions/sync/#{source}").read,
+                        repository: "Homebrew/#{File.basename(repository)}")
+      [path, (path == pull_request_template) ? contents : sync_header + contents]
+    end
+  end
+  let(:issue_templates) { expected_templates.keys - [pull_request_template] }
+  let(:own_template) { "- [ ] Have you run `make test`?\n" }
   let(:original_gemfile) { "source \"https://rubygems.org\"\n\nruby file: \".ruby-version\"\n\ngem \"rake\"\n" }
   let(:custom_gemfile) { "source \"https://rubygems.org\"\n\ngem \"rake\"\n" }
   let(:expected_gemfile) do
@@ -312,6 +326,56 @@ RSpec.describe "shared configuration sync" do
       if used != codeowners
         expect(target/codeowners).not_to exist
       end
+    end
+  end
+
+  it "installs issue and pull request templates linking to the repository, repeatedly" do
+    commit_fixture
+    sync_target
+    expected_templates.each { |path, contents| expect((target/path).read).to eq(contents) }
+    expect((target/pull_request_template).read).to include("https://github.com/Homebrew/no-ruby/pulls")
+    expect((target/".github/ISSUE_TEMPLATE/bug.yml").read).to include("https://github.com/Homebrew/no-ruby/issues")
+    expect_idempotent_sync
+  end
+
+  it "replaces outdated templates, then makes no further commits" do
+    expected_templates.each_key { |path| write path, own_template }
+    commit_fixture
+    sync_target
+    expected_templates.each { |path, contents| expect((target/path).read).to eq(contents) }
+    expect_idempotent_sync
+  end
+
+  context "with a repository that has its own templates" do
+    let(:repository) { "formulae.brew.sh" }
+
+    it "keeps them" do
+      expected_templates.each_key { |path| write path, own_template }
+      commit_fixture
+      sync_target
+      expected_templates.each_key { |path| expect((target/path).read).to eq(own_template) }
+    end
+  end
+
+  context "with a repository that has its own issue templates only" do
+    let(:repository) { "install" }
+
+    it "keeps them and installs the pull request template" do
+      issue_templates.each { |path| write path, own_template }
+      commit_fixture
+      sync_target
+      issue_templates.each { |path| expect((target/path).read).to eq(own_template) }
+      expect((target/pull_request_template).read).to eq(expected_templates.fetch(pull_request_template))
+    end
+  end
+
+  context "with the .github repository" do
+    let(:repository) { "source/.github" }
+
+    it "does not install templates" do
+      commit_fixture
+      sync_target
+      expected_templates.each_key { |path| expect(target/path).not_to exist }
     end
   end
 
