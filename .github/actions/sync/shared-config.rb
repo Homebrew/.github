@@ -232,8 +232,8 @@ tracked_files = out.split("\0")
 out, err, status = Open3.capture3("git", "-C", target_directory, "ls-files", "-z", "--others", "--exclude-standard")
 raise err unless status.success?
 
-# Local syncs can run on checkouts with uncommitted templates, which shouldn't get a shared one beside them.
-working_tree_files = tracked_files + out.split("\0")
+# Local syncs can run on checkouts with uncommitted template changes, so look at the files that are actually there.
+working_tree_files = (tracked_files + out.split("\0")).select { |path| (target_directory_path/path).exist? }
 
 swift_manifests = ["Package.swift", "Package.resolved"].freeze
 licenses_enabled ||= tracked_files.any? { |path| swift_manifests.include?(File.basename(path)) }

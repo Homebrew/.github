@@ -361,6 +361,26 @@ RSpec.describe "shared configuration sync" do
     expect_idempotent_sync
   end
 
+  it "keeps the pull request template when the repository's own one is deleted but not committed" do
+    commit_fixture
+    sync_target
+    write "PULL_REQUEST_TEMPLATE.md", own_template
+    commit_fixture
+    FileUtils.rm target/"PULL_REQUEST_TEMPLATE.md"
+    sync_target
+    expect((target/pull_request_template).read).to eq(expected_templates.fetch(pull_request_template))
+  end
+
+  it "installs issue templates when the last one is deleted but not committed" do
+    write ".github/ISSUE_TEMPLATE/feature.yml", own_template
+    commit_fixture
+    FileUtils.rm target/".github/ISSUE_TEMPLATE/feature.yml"
+    sync_target
+    issue_templates.each do |issue_template|
+      expect((target/issue_template).read).to eq(expected_templates.fetch(issue_template))
+    end
+  end
+
   {
     ".github/PULL_REQUEST_TEMPLATE.md"   => /pull_request_template/i,
     "PULL_REQUEST_TEMPLATE.md"           => /pull_request_template/i,
