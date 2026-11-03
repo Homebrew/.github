@@ -229,6 +229,12 @@ raise err unless status.success?
 
 tracked_files = out.split("\0")
 
+out, err, status = Open3.capture3("git", "-C", target_directory, "ls-files", "-z", "--others", "--exclude-standard")
+raise err unless status.success?
+
+# Local syncs can run on checkouts with uncommitted templates, which shouldn't get a shared one beside them.
+working_tree_files = tracked_files + out.split("\0")
+
 swift_manifests = ["Package.swift", "Package.resolved"].freeze
 licenses_enabled ||= tracked_files.any? { |path| swift_manifests.include?(File.basename(path)) }
 
@@ -468,11 +474,11 @@ puts "Detecting changes…"
     # Install templates once and then leave them to the repository, like any template it already has.
     contents = format(Pathname(template_sources.fetch(path)).read, repository: "Homebrew/#{repository_name}")
     if path == pull_request_template
-      own_templates = tracked_files.grep(existing_pull_request_template) - [path]
+      own_templates = working_tree_files.grep(existing_pull_request_template) - [path]
       # GitHub prefers `.github/`, so remove an unedited synced template once the repository adds its own elsewhere.
       FileUtils.rm_f target_path if own_templates.any? && target_path.file? && target_path.read == contents
       next if own_templates.any?
-    elsif tracked_files.any?(existing_issue_template)
+    elsif working_tree_files.any?(existing_issue_template)
       next
     end
     next if target_path.exist?

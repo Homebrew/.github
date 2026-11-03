@@ -361,11 +361,18 @@ RSpec.describe "shared configuration sync" do
     expect_idempotent_sync
   end
 
-  it "does not overwrite an uncommitted template" do
-    commit_fixture
-    write pull_request_template, own_template
-    sync_target
-    expect((target/pull_request_template).read).to eq(own_template)
+  {
+    ".github/PULL_REQUEST_TEMPLATE.md"   => /pull_request_template/i,
+    "PULL_REQUEST_TEMPLATE.md"           => /pull_request_template/i,
+    ".github/ISSUE_TEMPLATE/feature.yml" => /issue_template/i,
+  }.each do |path, pattern|
+    it "keeps an uncommitted #{path} without adding a shared template beside it" do
+      commit_fixture
+      write path, own_template
+      sync_target
+      expect((target/path).read).to eq(own_template)
+      expect(tracked_templates(pattern)).to eq([path])
+    end
   end
 
   %w[
