@@ -47,6 +47,10 @@ module SharedConfigHelpers
     successful_command("git", "-C", directory.to_s, *args).chomp
   end
 
+  def tracked_templates(pattern)
+    git("ls-files").lines(chomp: true).grep(pattern)
+  end
+
   def commit_fixture(directory: target)
     git("add", "--all", directory:)
     git("commit", "--quiet", "--message", "Fixture", directory:)
@@ -168,10 +172,9 @@ RSpec.describe "shared configuration sync" do
       pull_request_template               => "pull_request.template.md",
       ".github/ISSUE_TEMPLATE/bug.yml"    => "issue_bug.template.yml",
       ".github/ISSUE_TEMPLATE/config.yml" => "issue_config.template.yml",
-    }.to_h do |path, source|
-      contents = format((source_repository/".github/actions/sync/#{source}").read,
-                        repository: "Homebrew/#{File.basename(repository)}")
-      [path, (path == pull_request_template) ? contents : sync_header + contents]
+    }.transform_values do |source|
+      format((source_repository/".github/actions/sync/#{source}").read,
+             repository: "Homebrew/#{File.basename(repository)}")
     end
   end
   let(:issue_templates) { expected_templates.keys - [pull_request_template] }
@@ -338,33 +341,47 @@ RSpec.describe "shared configuration sync" do
     expect_idempotent_sync
   end
 
-  it "replaces outdated templates, then makes no further commits" do
-    expected_templates.each_key { |path| write path, own_template }
+  it "keeps an installed template after the repository edits it" do
     commit_fixture
     sync_target
-    expected_templates.each { |path, contents| expect((target/path).read).to eq(contents) }
+    write pull_request_template, own_template
+    commit_fixture
     expect_idempotent_sync
+    expect((target/pull_request_template).read).to eq(own_template)
   end
 
-  context "with a repository that has its own templates" do
-    let(:repository) { "formulae.brew.sh" }
-
-    it "keeps them" do
-      expected_templates.each_key { |path| write path, own_template }
+  %w[
+    .github/PULL_REQUEST_TEMPLATE.md
+    .github/pull_request_template.md
+    PULL_REQUEST_TEMPLATE.md
+    docs/pull_request_template.md
+    .github/PULL_REQUEST_TEMPLATE/bug_fix.md
+  ].each do |path|
+    it "keeps a repository's own pull request template at #{path} and installs issue templates" do
+      write path, own_template
       commit_fixture
       sync_target
-      expected_templates.each_key { |path| expect((target/path).read).to eq(own_template) }
+      expect((target/path).read).to eq(own_template)
+      expect(tracked_templates(/pull_request_template/i)).to eq([path])
+      issue_templates.each do |issue_template|
+        expect((target/issue_template).read).to eq(expected_templates.fetch(issue_template))
+      end
     end
   end
 
-  context "with a repository that has its own issue templates only" do
-    let(:repository) { "install" }
-
-    it "keeps them and installs the pull request template" do
-      issue_templates.each { |path| write path, own_template }
+  %w[
+    .github/ISSUE_TEMPLATE/feature.yml
+    .github/ISSUE_TEMPLATE/config.yml
+    .github/issue_template.md
+    ISSUE_TEMPLATE.md
+    docs/ISSUE_TEMPLATE.md
+  ].each do |path|
+    it "keeps a repository's own issue template at #{path} and installs the pull request template" do
+      write path, own_template
       commit_fixture
       sync_target
-      issue_templates.each { |path| expect((target/path).read).to eq(own_template) }
+      expect((target/path).read).to eq(own_template)
+      expect(tracked_templates(/issue_template/i)).to eq([path])
       expect((target/pull_request_template).read).to eq(expected_templates.fetch(pull_request_template))
     end
   end
