@@ -199,10 +199,12 @@ custom_rubocop_repos = %w[
 # These repositories don't get the synced CodeRabbit configuration or CODEOWNERS.
 # brew is excluded for now and homebrew-core and homebrew-cask permanently.
 # .github is excluded because it can sync changes to other repositories.
+# private owns a Security Team-reviewed approval policy and tests the shared CODEOWNERS entries itself.
 coderabbit_excluded_repositories = %w[
   brew
   homebrew-core
   homebrew-cask
+  private
   .github
 ].freeze
 # Each entry is an approved opt-in for that repository. Keep repository names lowercase.
