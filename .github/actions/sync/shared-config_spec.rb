@@ -271,7 +271,7 @@ RSpec.describe "shared configuration sync" do
     end
   end
 
-  %w[brew homebrew-core homebrew-cask .github].each do |name|
+  %w[brew homebrew-core homebrew-cask private .github].each do |name|
     context "with CodeRabbit excluded for #{name}" do
       let(:repository) { "coderabbit-excluded/#{name}" }
 
