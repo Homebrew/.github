@@ -27,6 +27,43 @@ def safe_system(*args)
   abort "Failed to run command: #{args.join(" ")}" if status.nil?
   exit(status.exitstatus || 1) unless status.success?
 end
+
+# Synced repositories can update an action before its source repository does,
+# so keep a target's pin wherever it is newer than the source's for the same repository.
+def keep_newer_action_pins(contents, target_path)
+  return contents unless target_path.file?
+
+  # Match only active `uses:` keys, quoted or not, so commented-out pins never count.
+  pin = %r{
+    ^(?<key>[ \t]*(?:-[ \t]+)?uses:[ \t]+)(?<quote>["']?)
+    (?<repository>[\w.-]+/[\w.-]+)(?<action>/[^@\s"']+)?@(?<sha>\h{40})\k<quote>
+    (?<comment>[ \t]+\#[ \t]+)(?<version>v?\d\S*)
+  }x
+  version = lambda do |match|
+    tag = match[:version].delete_prefix("v")
+    Gem::Version.new(tag) if Gem::Version.correct?(tag)
+  end
+
+  newest_target_pins = {}
+  target_path.read.scan(pin) do
+    match = Regexp.last_match
+    next unless (target_version = version.call(match))
+
+    repository = match[:repository].downcase
+    newest = newest_target_pins[repository]
+    newest_target_pins[repository] = match if newest.nil? || target_version > version.call(newest)
+  end
+
+  contents.gsub(pin) do
+    match = Regexp.last_match
+    newest = newest_target_pins[match[:repository].downcase]
+    source_version = version.call(match)
+    next match.to_s if newest.nil? || source_version.nil? || version.call(newest) <= source_version
+
+    "#{match[:key]}#{match[:quote]}#{match[:repository]}#{match[:action]}@#{newest[:sha]}" \
+      "#{match[:quote]}#{match[:comment]}#{newest[:version]}"
+  end
+end
 # rubocop:enable Style/TopLevelMethodDefinition
 
 if ARGV[0].to_s.empty? || ARGV[1].to_s.empty? || ARGV[4]
@@ -130,8 +167,8 @@ homebrew_vale_ini = homebrew_repository_path/vale_ini
 
 target_gemfile_locks = []
 dependabot_config_yaml = YAML.load_file(dependabot_template_yaml)
-# This should be run after dependabot.yml for this repository (Monday)
-# and after the sync-shared-config job for synced repositories (Wednesday).
+# Every synced repository, including this one and `brew`, updates on Friday,
+# between the Wednesday sync-shared-config jobs.
 # This maximises the chance of a single sync per week handling both any
 # changes and any dependabot updates.
 dependabot_config_yaml["updates"].each do |update|
@@ -345,7 +382,7 @@ puts "Detecting changes…"
     end
     next if path == target_path.to_s
 
-    contents = path.read
+    contents = keep_newer_action_pins(path.read, target_path)
     FileUtils.rm_f target_path
     target_path.write(
       "# This file is synced from `Homebrew/brew` by the `.github` repository, do not modify it directly.\n" \
@@ -450,6 +487,7 @@ puts "Detecting changes…"
       Pathname(path).read
                     .chomp
     end
+    contents = keep_newer_action_pins(contents, target_path)
 
     header = "# This file is synced from the `.github` repository, do not modify it directly.\n"
     # Keep a shebang on the first line so synced shell scripts still pass ShellCheck.

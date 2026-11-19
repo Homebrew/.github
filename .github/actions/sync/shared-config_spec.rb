@@ -123,6 +123,12 @@ module SharedConfigHelpers
     JS
   end
 
+  def repin(contents, repository, sha, version)
+    contents.gsub(%r{(?<=uses: #{Regexp.escape(repository)})(/[^@\s]+)?@\h{40} # \S+}) do
+      "#{Regexp.last_match(1)}@#{sha} # #{version}"
+    end
+  end
+
   def synced_contents(path)
     contents = (source_repository/path).read
     if contents.start_with?("#!")
@@ -539,6 +545,62 @@ RSpec.describe "shared configuration sync" do
     sync_target
     expect((target/".ruby-version").read).to eq(newer_version)
     expect_idempotent_sync
+  end
+
+  context "with action pins in synced workflows" do
+    let(:newer_sha) { "a" * 40 }
+    let(:newer_version) { "9999.1.1.1" }
+
+    it "keeps newer pins per repository and takes newer source pins, repeatedly" do
+      workflow = ".github/workflows/actionlint.yml"
+      newer = repin(synced_contents(workflow), "Homebrew/actions", newer_sha, newer_version)
+      write workflow, repin(newer, "actions/checkout", "b" * 40, "v1.0.0")
+      commit_fixture
+      sync_target
+      expect((target/workflow).read).to eq(newer)
+      expect_idempotent_sync
+    end
+
+    it "keeps newer pins in the docs workflow synced from brew" do
+      workflow = ".github/workflows/docs.yml"
+      write "docs/index.md"
+      commit_fixture
+      sync_target
+      synced = (target/workflow).read
+      newer = repin(synced, "Homebrew/actions", newer_sha, newer_version)
+      expect(newer).not_to eq(synced)
+      write workflow, newer
+      commit_fixture
+      sync_target
+      expect((target/workflow).read).to eq(newer)
+      expect_idempotent_sync
+    end
+
+    it "ignores pins without a comparable version" do
+      workflow = ".github/workflows/actionlint.yml"
+      write workflow, repin(synced_contents(workflow), "Homebrew/actions", newer_sha, "main")
+      commit_fixture
+      sync_target
+      expect((target/workflow).read).to eq(synced_contents(workflow))
+    end
+
+    it "ignores commented-out pins" do
+      workflow = ".github/workflows/actionlint.yml"
+      synced = synced_contents(workflow)
+      write workflow, "#{synced}# uses: Homebrew/actions/setup-homebrew@#{newer_sha} # #{newer_version}\n"
+      commit_fixture
+      sync_target
+      expect((target/workflow).read).to eq(synced)
+    end
+
+    it "keeps newer quoted and differently spaced pins" do
+      workflow = ".github/workflows/actionlint.yml"
+      newer = repin(synced_contents(workflow), "Homebrew/actions", newer_sha, newer_version)
+      write workflow, newer.gsub(%r{uses: (Homebrew/actions/\S+@\h{40})}, "uses:  '\\1'")
+      commit_fixture
+      sync_target
+      expect((target/workflow).read).to eq(newer)
+    end
   end
 
   %w[root root-with-lock docs shared-docs dangling-docs first-sync-docs].each do |layout|

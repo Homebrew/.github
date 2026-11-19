@@ -6,8 +6,8 @@ on:
       - main
   pull_request:
   schedule:
-    # This should be run after dependabot.yml for this repository (Monday)
-    # and before dependabot.yml for synced repositories (Friday).
+    # This should be run between Friday's dependabot.yml updates for this
+    # repository, `brew` and synced repositories.
     # This maximises the chance of a single sync per week handling both any
     # changes and any dependabot updates.
     - cron: "0 8 * * 3" # Every Wednesday at 8 AM
