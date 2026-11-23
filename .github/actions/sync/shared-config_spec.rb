@@ -538,7 +538,8 @@ RSpec.describe "shared configuration sync" do
 
   it "preserves a Ruby version newer than Portable Ruby" do
     portable_version = (brew_repository/"Library/Homebrew/vendor/portable-ruby-version").read
-    newer_version = "#{portable_version.split(".").first.to_i + 1}.0.0\n"
+    version_bump_int = portable_version.split(".").first.to_i + 1
+    newer_version = "#{version_bump_int}.0.0\n"
     write ".ruby-version", newer_version
     write "example.rb"
     commit_fixture

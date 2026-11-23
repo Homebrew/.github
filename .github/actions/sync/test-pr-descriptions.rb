@@ -121,7 +121,11 @@ Dir.mktmpdir("pr-descriptions") do |workdir|
           abort "Unsupported condition: #{comparison}" unless match
 
           equal = values.fetch(match[1], "") == match[3]
-          (match[2] == "==") ? equal : !equal
+          if match[2] == "=="
+            equal
+          else
+            !equal
+          end
         end.any?
       end.all?
       values["steps.#{step["id"]}.outcome"] = enabled ? "success" : "skipped"
