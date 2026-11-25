@@ -55,7 +55,9 @@ updates:
       default-days: 7
 
   - package-ecosystem: docker
-    directory: /
+    directories:
+      - /
+      - /infrastructure/analytics_proxy
     schedule:
       interval: weekly
       day: "monday"
