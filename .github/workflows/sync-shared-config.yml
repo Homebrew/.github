@@ -179,46 +179,59 @@ jobs:
           fi
           ./.github/actions/sync/shared-config.rb "${TARGET}" '/home/linuxbrew/.linuxbrew/Homebrew' source/brew.sh "${private_args[@]}"
 
-      - name: Reconcile pull request
+      - name: Stagger network calls
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-        run: |
-          cd "target/$GH_REPO"
-          git checkout -b sync-shared-config
+        env:
+          JOB_INDEX: ${{ strategy.job-index }}
+        run: sleep "$(( JOB_INDEX * 5 ))"
 
-          # Stagger network calls to minimise errors.
-          sleep "$(( JOB_INDEX * 5 ))"
-          if gh api \
-              -X GET \
-              --header 'Accept: application/vnd.github+json' \
-              --header 'X-GitHub-Api-Version: 2022-11-28' \
-              "/repos/${GH_REPO}/pulls" \
-              -f head=Homebrew:sync-shared-config \
-              -f state=open |
-              jq --exit-status 'length == 0'
-          then
-            if [[ "$HAS_CHANGES" != true ]]
-            then
-              exit 0
-            fi
-            git push --set-upstream --force origin sync-shared-config
-            # We don't want backticks to be expanded.
-            # shellcheck disable=SC2016
-            gh pr create --head sync-shared-config --title "Synchronize shared configuration" --body 'This pull request was created automatically by the [`sync-shared-config`](https://github.com/Homebrew/.github/blob/HEAD/.github/actions/sync/shared-config.rb) workflow.'
-          elif [[ "$HAS_CHANGES" != true ]]
-          then
-            gh pr close sync-shared-config --delete-branch
-          else
-            git fetch origin sync-shared-config
-            if ! git diff --no-ext-diff --quiet --exit-code origin/sync-shared-config
-            then
-              git push --force origin sync-shared-config
-            fi
-          fi
+      - name: Find sync pull request
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        id: pr
+        # TODO: Pin a released Homebrew/actions commit and add its version tag.
+        uses: Homebrew/actions/get-or-create-pull-request@b4c226ae32acab42c7c2c0745ad224a1e9958022
+        with:
+          repository: ${{ matrix.repo }}
+          read-token: ${{ secrets.HOMEBREW_DOTGITHUB_WORKFLOW_TOKEN }}
+          head: sync-shared-config
+          create-if-missing: false
+
+      - name: Reconcile pull request branch
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        working-directory: target/${{ matrix.repo }}
         env:
           GH_REPO: ${{ matrix.repo }}
           GH_TOKEN: ${{ secrets.HOMEBREW_DOTGITHUB_WORKFLOW_TOKEN }}
-          JOB_INDEX: ${{ strategy.job-index }}
+          PR: ${{ steps.pr.outputs.number }}
           HAS_CHANGES: ${{ steps.detect_changes.outputs.pull_request }}
+        run: |
+          git checkout -b sync-shared-config
+          if [[ -z "$PR" ]]; then
+            if [[ "$HAS_CHANGES" == true ]]; then
+              git push --set-upstream --force origin sync-shared-config
+            fi
+          elif [[ "$HAS_CHANGES" != true ]]; then
+            gh pr close "$PR" --delete-branch
+          else
+            git fetch origin sync-shared-config
+            if ! git diff --no-ext-diff --quiet --exit-code origin/sync-shared-config; then
+              git push --force origin sync-shared-config
+            fi
+          fi
+
+      - name: Open sync pull request
+        if: >-
+          (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') &&
+          steps.detect_changes.outputs.pull_request == 'true' && steps.pr.outputs.number == ''
+        # TODO: Pin a released Homebrew/actions commit and add its version tag.
+        uses: Homebrew/actions/get-or-create-pull-request@b4c226ae32acab42c7c2c0745ad224a1e9958022
+        with:
+          repository: ${{ matrix.repo }}
+          read-token: ${{ secrets.HOMEBREW_DOTGITHUB_WORKFLOW_TOKEN }}
+          token: ${{ secrets.HOMEBREW_DOTGITHUB_WORKFLOW_TOKEN }}
+          head: sync-shared-config
+          title: Synchronize shared configuration
+          body: This pull request was created automatically by the [`sync-shared-config`](https://github.com/Homebrew/.github/blob/HEAD/.github/actions/sync/shared-config.rb) workflow.
   conclusion:
     needs: sync
     runs-on: ubuntu-slim
